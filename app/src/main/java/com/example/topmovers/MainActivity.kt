@@ -8,10 +8,13 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.topmovers.Repository.Repository
+import com.example.topmovers.Screens.DetailsScreen
 import com.example.topmovers.Screens.ExploreScreen
 import com.example.topmovers.Screens.TopGainersScreen
 import com.example.topmovers.Screens.TopLosersScreen
@@ -77,7 +80,9 @@ class MainActivity : ComponentActivity() {
                                 topGainers = viewModel.topGainers,
                                 onBackClicked = {
                                     navController.popBackStack()
-                                }
+                                },
+                                navController = navController
+
                             )
                         }
 
@@ -87,8 +92,35 @@ class MainActivity : ComponentActivity() {
                                 topLosers = viewModel.topLosers,
                                 onBackClicked = {
                                     navController.popBackStack()
-                                }
+                                },
+                                navController = navController
+
                             )
+                        }
+                        // *** ADDED: Stock Details Screen Route ***
+                        // In the file where your NavHost is defined
+
+                        composable(
+                            route = Screens.StockDetails.route,
+                            arguments = listOf(
+                                navArgument("price") { type = NavType.StringType; nullable = true },
+                                navArgument("changePercentage") { type = NavType.StringType; nullable = true }
+                            )
+                        ) { backStackEntry ->
+                            val ticker = backStackEntry.arguments?.getString("ticker")
+                            val price = backStackEntry.arguments?.getString("price") ?: "N/A"
+                            val changePercentage = backStackEntry.arguments?.getString("changePercentage") ?: "0.0%"
+
+                            if (ticker != null) {
+                                DetailsScreen(
+                                    ticker = ticker,
+                                    price = price,
+                                    changePercentage = changePercentage, // Pass only the percentage
+                                    apiKey = "NTJBDU9U1JGKA613",
+                                    repository = repository,
+                                    onBackClicked = { navController.popBackStack() }
+                                )
+                            }
                         }
                     }
                 }

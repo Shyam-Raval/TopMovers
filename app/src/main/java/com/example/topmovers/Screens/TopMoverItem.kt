@@ -31,14 +31,14 @@ import com.example.topmovers.Retrofit.TopMover
 
 @Composable
 fun TopMoverItem(
-    mover: TopMover, onClick: () -> Unit
+    mover: TopMover,  onClick: (ticker: String) -> Unit
 ) {
     val isGain = (mover.changeAmount.toDoubleOrNull() ?: 0.0) >= 0
     val changeColor = if (isGain) Color(0xFF00C853) else Color(0xFFD50000)
 
     Card(
         elevation = CardDefaults.cardElevation(4.dp),
-        modifier = Modifier.aspectRatio(1f).clickable(onClick = onClick)  // Makes the card square
+        modifier = Modifier.aspectRatio(1f).clickable{ onClick(mover.ticker) }   // Makes the card square
     ) {
         Column(
             modifier = Modifier

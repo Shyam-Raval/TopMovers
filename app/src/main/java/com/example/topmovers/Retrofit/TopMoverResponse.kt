@@ -4,6 +4,10 @@ import com.google.gson.annotations.SerializedName
 
 
 data class TopMoversResponse(
+        // ADD THIS FIELD for the rate limit message
+        @SerializedName("Information")
+        val information: String?,
+
         @SerializedName("metadata")
         val metadata: String,
 

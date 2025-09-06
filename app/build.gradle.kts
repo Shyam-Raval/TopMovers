@@ -97,6 +97,7 @@ dependencies {
     implementation(libs.converter.gson)
     implementation(libs.converter.gson)
     implementation(libs.converter.gson.v290)
+    implementation("androidx.compose.material:material-icons-extended-android:1.6.7")
 
 
 

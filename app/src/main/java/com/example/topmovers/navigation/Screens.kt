@@ -1,5 +1,8 @@
 package com.example.topmovers.navigation
 
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
+
 sealed class Screens(val route: String) {
     // Main screen with Top Gainers and Losers sections
     object Explore : Screens("explore")
@@ -14,7 +17,15 @@ sealed class Screens(val route: String) {
     object Watchlist : Screens("watchlist")
 
     // Details screen for a specific stock, requires a ticker symbol
-    object StockDetails : Screens("stock_details/{ticker}") {
-        fun createRoute(ticker: String) = "stock_details/$ticker"
+    // The route now includes a placeholder for the price
+
+    object StockDetails :
+        Screens("stock_details/{ticker}?price={price}&changePercentage={changePercentage}") {
+        fun createRoute(ticker: String, price: String, changePercentage: String): String {
+            val encodedChangePercentage =
+                URLEncoder.encode(changePercentage, StandardCharsets.UTF_8.toString())
+            return "stock_details/$ticker?price=$price&changePercentage=$encodedChangePercentage"
+        }
+
     }
 }

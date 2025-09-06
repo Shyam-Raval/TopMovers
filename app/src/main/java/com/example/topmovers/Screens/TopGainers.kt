@@ -20,14 +20,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import com.example.topmovers.Retrofit.TopMover
+import com.example.topmovers.navigation.Screens
 import com.example.topmovers.ui.components.TopMoverItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopGainersScreen(
     topGainers: List<TopMover>,
-    onBackClicked: () -> Unit
+    onBackClicked: () -> Unit,
+    navController: NavHostController // CHANGED: Added NavController
 ) {
     Scaffold(
         topBar = {
@@ -54,7 +57,18 @@ fun TopGainersScreen(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(topGainers) { mover ->
-                TopMoverItem(mover = mover,{})
+                // CHANGED: Implemented onClick navigation
+                TopMoverItem(mover = mover) { ticker ->
+                    navController.navigate(
+                        Screens.StockDetails.createRoute(
+                            ticker = mover.ticker,
+                            price = mover.price,
+                            changePercentage = mover.changePercentage
+                        )
+                    )
+
+
+                }
             }
         }
     }
