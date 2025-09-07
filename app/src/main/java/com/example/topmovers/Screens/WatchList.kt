@@ -12,18 +12,23 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,9 +39,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
-import com.example.topmovers.ViewModel.Watchlist
+import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.topmovers.Room.WatchList
 import com.example.topmovers.ViewModel.WatchlistViewModel
+import com.example.topmovers.navigation.Screens
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,9 +54,9 @@ fun WatchlistScreen(
     viewModel: WatchlistViewModel,
     navController: NavHostController
 ) {
-    val watchlists = viewModel.watchlists
+    val watchlists by viewModel.watchlists.collectAsState()
     var showAddDialog by remember { mutableStateOf(false) }
-    var watchlistToDelete by remember { mutableStateOf<Watchlist?>(null) }
+    var watchlistToDelete by remember { mutableStateOf<WatchList?>(null) }
 
     Scaffold(
         topBar = {
@@ -76,7 +86,9 @@ fun WatchlistScreen(
                     items(watchlists) { watchlist ->
                         WatchlistItem(
                             watchlist = watchlist,
-                            onClick = { /* TODO: Navigate to watchlist details */ },
+                            onClick = { navController.navigate(
+                                Screens.WatchlistDetail.createRoute(watchlist.watchlistId)
+                            ) },
                             onDelete = { watchlistToDelete = watchlist }
                         )
                     }
@@ -98,8 +110,6 @@ fun WatchlistScreen(
             DeleteConfirmationDialog(
                 watchlistName = watchlist.name,
                 onConfirm = {
-                    // THE ONLY CHANGE IS HERE:
-                    // Calling 'removeWatchlist' to match your ViewModel.
                     viewModel.removeWatchlist(watchlist)
                     watchlistToDelete = null
                 },
@@ -111,12 +121,9 @@ fun WatchlistScreen(
     }
 }
 
-// The rest of the file (WatchlistItem, AddWatchlistDialog, DeleteConfirmationDialog)
-// does not need any changes.
-
 @Composable
 fun WatchlistItem(
-    watchlist: Watchlist,
+    watchlist: WatchList,
     onClick: () -> Unit,
     onDelete: () -> Unit
 ) {
@@ -200,3 +207,45 @@ fun DeleteConfirmationDialog(
         }
     )
 }
+
+
+/**
+ * ADDED: The missing Bottom Navigation Bar composable.
+ */
+//@Composable
+//fun StocksBottomNav(navController: NavHostController) {
+//    val navBackStackEntry by navController.currentBackStackEntryAsState()
+//    val currentDestination = navBackStackEntry?.destination
+//
+//    NavigationBar {
+//        // --- Home Item ---
+//        NavigationBarItem(
+//            label = { Text("Home") },
+//            icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
+//            selected = currentDestination?.hierarchy?.any { it.route == Screens.Explore.route } == true,
+//            onClick = {
+//                navController.navigate(Screens.Explore.route) {
+//                    popUpTo(navController.graph.findStartDestination().id) {
+//                        saveState = true
+//                    }
+//                    launchSingleTop = true
+//                    restoreState = true
+//                }
+//            }
+//        )
+//
+//        // --- Watchlist Item ---
+//        NavigationBarItem(
+//            label = { Text("Watchlist") },
+//            icon = { Icon(Icons.Default.Star, contentDescription = "Watchlist") },
+//            selected = currentDestination?.hierarchy?.any { it.route == Screens.Watchlist.route } == true,
+//            onClick = {
+//                navController.navigate(Screens.Watchlist.route) {
+//                    popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+//                    launchSingleTop = true
+//                    restoreState = true
+//                }
+//            }
+//        )
+//    }
+//}

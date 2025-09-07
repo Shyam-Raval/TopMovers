@@ -3,7 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
 //    id("com.google.gms.google-services")
-//    id("com.google.devtools.ksp")
+    id("com.google.devtools.ksp")
 //    id("com.google.dagger.hilt.android")
 }
 
@@ -85,10 +85,10 @@ dependencies {
 //    ksp("com.google.dagger:hilt-android-compiler:2.56.1")
 //    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 //
-//    //Room
-//    val room_version = "2.7.1"
-//    implementation("androidx.room:room-runtime:$room_version")
-//    ksp("androidx.room:room-compiler:$room_version")
+    //Room
+    //val room_version = "2.7.1"
+    implementation(libs.androidx.room.runtime)
+    ksp(libs.androidx.room.compiler)
 //    implementation("androidx.room:room-ktx:$room_version")
 //
 //    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.1")

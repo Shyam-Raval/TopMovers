@@ -1,8 +1,12 @@
 package com.example.topmovers.Retrofit
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import com.google.gson.annotations.SerializedName
 
+@Entity(tableName = "stocks")
 data class TopMover(
+    @PrimaryKey
     @SerializedName("ticker")
     val ticker: String,
 

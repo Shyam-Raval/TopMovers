@@ -1,45 +1,61 @@
 package com.example.topmovers.Repository
 
-import android.content.Context
 import com.example.topmovers.Retrofit.CompanyInfo
 import com.example.topmovers.Retrofit.RetrofitInstance
+import com.example.topmovers.Retrofit.TopMover
 import com.example.topmovers.Retrofit.TopMoversResponse
-import com.example.topmovers.ViewModel.Watchlist
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import com.example.topmovers.Room.WatchList
+import com.example.topmovers.Room.WatchlistDao
+import com.example.topmovers.Room.WatchlistStockCrossRef
+import com.example.topmovers.Room.WatchlistWithStocks
+import kotlinx.coroutines.flow.Flow
 import java.io.IOException
 
 class ApiLimitException(message: String) : IOException(message)
 
-// NOTE: The Watchlist data class is now defined here or in a separate model file
-// so it can be shared across the application.
-data class Watchlist(
-    val id: Long = 0L,
-    val name: String
-)
+/**
+ * The repository requires the watchlistDao to talk to the database,
+ * so we pass it in the constructor.
+ */
+class Repository(val watchlistDao: WatchlistDao) {
 
-class Repository(context: Context) {
+    // --- DATABASE OPERATIONS ---
 
-    // --- TEMPORARY IN-MEMORY WATCHLIST SOURCE ---
-    // This will be replaced by the Room DAO later.
-    private val _watchlists = MutableStateFlow<List<Watchlist>>(emptyList())
-    val watchlists = _watchlists.asStateFlow() // Expose as a read-only Flow
+    /**
+     * A live stream of all watchlists from the database.
+     */
+    val allWatchlists: Flow<List<WatchList>> = watchlistDao.getAllWatchlists()
 
-    private var nextId = 1L // Simple ID generator for the temporary list
+    /**
+     * Adds a new watchlist to the database.
+     */
+    suspend fun addWatchlist(name: String): Long {
+        val newWatchlist = WatchList(name = name)
+        return watchlistDao.insertWatchlist(newWatchlist)
 
-    fun addInMemoryWatchlist(name: String) {
-        val newWatchlist = Watchlist(id = nextId++, name = name)
-        _watchlists.update { currentList -> currentList + newWatchlist }
     }
 
-    fun removeInMemoryWatchlist(watchlist: Watchlist) {
-        _watchlists.update { currentList -> currentList - watchlist }
+    /**
+     * Removes a watchlist from the database.
+     */
+    suspend fun removeWatchlist(watchlist: WatchList) {
+        watchlistDao.deleteWatchlist(watchlist)
     }
-    // --- END OF TEMPORARY CODE ---
 
+    /**
+     * Adds a stock to a specific watchlist.
+     */
+    suspend fun addStockToWatchlist(stock: TopMover, watchlistId: Long) {
+        watchlistDao.insertStock(stock)
+        val crossRef = WatchlistStockCrossRef(watchlistId = watchlistId, ticker = stock.ticker)
+        watchlistDao.insertWatchlistStockCrossRef(crossRef)
+    }
 
-    // --- API Functions ---
+    // --- NETWORK (API) OPERATIONS ---
+
+    /**
+     * Fetches the list of top gainers and losers from the network.
+     */
     suspend fun getTopMoversFromApi(apiKey: String): TopMoversResponse {
         val response = RetrofitInstance.api.getTopMovers(apiKey = apiKey)
         if (response.information != null) {
@@ -48,7 +64,14 @@ class Repository(context: Context) {
         return response
     }
 
+    /**
+     * Fetches the detailed company overview for a single stock from the network.
+     */
     suspend fun getCompanyOverview(ticker: String, apiKey: String): CompanyInfo {
         return RetrofitInstance.api.getCompanyOverview(symbol = ticker, apiKey = apiKey)
     }
+    fun getWatchlistWithStocks(id: Long): Flow<WatchlistWithStocks> {
+        return watchlistDao.getWatchlistWithStocks(id)
+    }
+
 }

@@ -116,7 +116,8 @@ fun ExploreScreen(
                                         Screens.StockDetails.createRoute(
                                             ticker = mover.ticker,
                                             price = mover.price,
-                                            changePercentage = mover.changePercentage
+                                            changePercentage = mover.changePercentage,
+                                            changeAmount = mover.changeAmount
                                         )
                                     )
 
@@ -140,7 +141,8 @@ fun ExploreScreen(
                                         Screens.StockDetails.createRoute(
                                             ticker = mover.ticker,
                                             price = mover.price,
-                                            changePercentage = mover.changePercentage
+                                            changePercentage = mover.changePercentage,
+                                            changeAmount = mover.changeAmount
                                         )
                                     )
 

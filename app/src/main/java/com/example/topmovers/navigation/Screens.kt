@@ -19,13 +19,22 @@ sealed class Screens(val route: String) {
     // Details screen for a specific stock, requires a ticker symbol
     // The route now includes a placeholder for the price
 
+
     object StockDetails :
-        Screens("stock_details/{ticker}?price={price}&changePercentage={changePercentage}") {
-        fun createRoute(ticker: String, price: String, changePercentage: String): String {
+    // 1. ADD "changeAmount" to the route string
+        Screens("stock_details/{ticker}?price={price}&changeAmount={changeAmount}&changePercentage={changePercentage}") {
+
+        // 2. UPDATE the createRoute function to accept and pass the changeAmount
+        fun createRoute(ticker: String, price: String, changeAmount: String, changePercentage: String): String {
+            val encodedChangeAmount =
+                URLEncoder.encode(changeAmount, StandardCharsets.UTF_8.toString())
             val encodedChangePercentage =
                 URLEncoder.encode(changePercentage, StandardCharsets.UTF_8.toString())
-            return "stock_details/$ticker?price=$price&changePercentage=$encodedChangePercentage"
+            return "stock_details/$ticker?price=$price&changeAmount=$encodedChangeAmount&changePercentage=$encodedChangePercentage"
         }
+    }
 
+    object WatchlistDetail : Screens("watchlist_detail/{watchlistId}") {
+        fun createRoute(watchlistId: Long) = "watchlist_detail/$watchlistId"
     }
 }

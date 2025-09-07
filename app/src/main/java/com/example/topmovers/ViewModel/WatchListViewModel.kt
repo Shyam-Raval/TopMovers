@@ -1,67 +1,37 @@
 package com.example.topmovers.ViewModel
 
-
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.topmovers.Repository.Repository
+import com.example.topmovers.Room.WatchList
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-
-// Data class to represent a single watchlist in your database
-data class Watchlist(
-    val id: Long = 0L, // Use Long for database IDs
-    val name: String
-)
 
 class WatchlistViewModel(private val repository: Repository) : ViewModel() {
 
-    // --- STATE ---
-    // Exposes the list of watchlists for the UI to observe.
-    var watchlists by mutableStateOf<List<Watchlist>>(emptyList())
-        private set
-
-    // When the ViewModel is first created, load the existing watchlists.
-    init {
-        loadWatchlists()
-    }
-
-    // --- USER ACTIONS ---
-
     /**
-     * Creates a new watchlist and saves it to the database.
+     * This is the corrected property.
+     * It's now a StateFlow, which is a live stream of data that your
+     * UI can collect with .collectAsState().
      */
+    val watchlists: StateFlow<List<WatchList>> = repository.allWatchlists
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
     fun addWatchlist(name: String) {
-        // Run this operation in a background coroutine
         viewModelScope.launch {
-            val newWatchlist = Watchlist(name = name)
-            // The repository will handle the database insertion
-            // repository.insertWatchlist(newWatchlist)
-            // For now, we just add to the local list
-            watchlists = watchlists + newWatchlist
+            repository.addWatchlist(name)
         }
     }
 
-    /**
-     * Removes a watchlist from the database.
-     */
-    fun removeWatchlist(watchlist: Watchlist) {
+    fun removeWatchlist(watchlist: WatchList) {
         viewModelScope.launch {
-            // The repository will handle the database deletion
-            // repository.deleteWatchlist(watchlist)
-            // For now, we just remove from the local list
-            watchlists = watchlists - watchlist
-        }
-    }
-
-    /**
-     * Loads all watchlists from the repository.
-     */
-    private fun loadWatchlists() {
-        viewModelScope.launch {
-            // The repository will get the data from a local Room database
-            // watchlists = repository.getAllWatchlists()
+            repository.removeWatchlist(watchlist)
         }
     }
 }

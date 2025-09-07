@@ -7,6 +7,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Business
 import androidx.compose.material3.*
@@ -25,6 +26,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.topmovers.Repository.Repository
 import com.example.topmovers.Retrofit.CompanyInfo
+import com.example.topmovers.Retrofit.TopMover
 import com.example.topmovers.ViewModel.DetailsViewModel
 import com.example.topmovers.ViewModel.DetailsViewModelFactory
 
@@ -34,21 +36,43 @@ fun DetailsScreen(
     ticker: String,
     price: String,
     changePercentage: String,
-    apiKey: String,
+     // 1. ADD changeAmount here
     repository: Repository,
-    onBackClicked: () -> Unit
+    onBackClicked: () -> Unit,
+    changeAmount: String
 ) {
-    val viewModel: DetailsViewModel = viewModel(
-        factory = DetailsViewModelFactory(repository)
-    )
+    val viewModel: DetailsViewModel = viewModel(factory = DetailsViewModelFactory(repository))
+
 
     LaunchedEffect(key1 = ticker) {
-        viewModel.fetchStockDetails(ticker, apiKey)
+        viewModel.fetchStockDetails(ticker, "NTJBDU9U1JGKA613")
     }
 
     val companyInfo = viewModel.companyInfo
     val isLoading = viewModel.isLoading
     val errorMessage = viewModel.errorMessage
+    val allWatchlists by viewModel.allWatchlists.collectAsState()
+    val isStockInWatchlist by viewModel.isStockInWatchlist(ticker).collectAsState()
+
+    var showDialog1 by remember { mutableStateOf(false) }
+
+    if (showDialog1) {
+        AddToWatchlistDialog(
+            existingWatchlists = allWatchlists,
+            onDismiss = { showDialog1 = false },
+            onConfirm = { watchlistId, newName ->
+                val stock = TopMover(ticker, price, changeAmount, changePercentage, "")
+
+                if (newName != null) {
+                    viewModel.createNewWatchlistAndAddStock(newName, stock)
+                } else if (watchlistId != null) {
+                    viewModel.addStockToWatchlist(stock, watchlistId)
+                }
+                showDialog1 = false
+            }
+        )
+    }
+
 
     Scaffold(
         topBar = {
@@ -60,8 +84,13 @@ fun DetailsScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { /* TODO: Implement add to watchlist */ }) {
-                        Icon(Icons.Default.BookmarkBorder, contentDescription = "Add to Watchlist")
+                    IconButton(onClick = { showDialog1 = true}) {
+                        Icon(
+                            // --- Icon changes based on whether the stock is saved ---
+                            imageVector = if (isStockInWatchlist) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
+                            contentDescription = "Add to Watchlist",
+                            tint = if (isStockInWatchlist) MaterialTheme.colorScheme.primary else LocalContentColor.current
+                        )
                     }
                 }
             )
