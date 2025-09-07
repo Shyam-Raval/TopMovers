@@ -1,3 +1,4 @@
+
 package com.example.topmovers.Retrofit
 
 import retrofit2.http.GET
@@ -18,5 +19,10 @@ interface ApiService {
       @Query("symbol") symbol: String, // The stock ticker (e.g., "AAPL")
       @Query("apikey") apiKey: String
    ): CompanyInfo // It will return the CompanyInfo object we defined
+   @GET("query?function=GLOBAL_QUOTE")
+   suspend fun getQuote(
+      @Query("symbol") symbol: String,
+      @Query("apikey") apiKey: String = "NTJBDU9U1JGKA613"
+   ): GlobalQuoteResponse
 
 }

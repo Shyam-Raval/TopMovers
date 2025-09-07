@@ -36,7 +36,6 @@ fun DetailsScreen(
     ticker: String,
     price: String,
     changePercentage: String,
-     // 1. ADD changeAmount here
     repository: Repository,
     onBackClicked: () -> Unit,
     changeAmount: String

@@ -1,3 +1,4 @@
+
 package com.example.topmovers.Retrofit
 
 import com.google.gson.annotations.SerializedName
@@ -33,4 +34,4 @@ data class CompanyInfo(
     @SerializedName("Exchange")
     val exchange: String?,
 
-)
+    )

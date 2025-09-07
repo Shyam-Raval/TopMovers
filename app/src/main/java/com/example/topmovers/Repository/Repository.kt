@@ -1,3 +1,4 @@
+
 package com.example.topmovers.Repository
 
 import com.example.topmovers.Retrofit.CompanyInfo
@@ -73,5 +74,22 @@ class Repository(val watchlistDao: WatchlistDao) {
     fun getWatchlistWithStocks(id: Long): Flow<WatchlistWithStocks> {
         return watchlistDao.getWatchlistWithStocks(id)
     }
+    suspend fun getQuoteForTicker(ticker: String): Result<TopMover> {
+        return try {
+            val response = RetrofitInstance.api.getQuote(symbol = ticker)
+            // Convert the API response into the TopMover format your UI uses
+            val freshStock = TopMover(
+                ticker = response.globalQuote.symbol,
+                price = response.globalQuote.price,
+                changeAmount = response.globalQuote.change,
+                changePercentage = response.globalQuote.changePercent,
+                volume = "" // The quote endpoint doesn't provide volume
+            )
+            Result.success(freshStock)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
 
 }
