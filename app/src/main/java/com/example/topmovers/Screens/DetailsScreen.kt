@@ -26,13 +26,13 @@ import com.example.topmovers.Repository.Repository
 import com.example.topmovers.Retrofit.CompanyInfo
 import com.example.topmovers.Retrofit.TopMover
 import com.example.topmovers.ViewModel.DetailsViewModel
-import com.example.topmovers.ViewModel.DetailsViewModelFactory
 import com.patrykandpatrick.vico.compose.axis.horizontal.rememberBottomAxis
 import com.patrykandpatrick.vico.compose.axis.vertical.rememberStartAxis
 import com.patrykandpatrick.vico.compose.chart.Chart
 import com.patrykandpatrick.vico.compose.chart.line.lineChart
 import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
 import com.patrykandpatrick.vico.core.entry.FloatEntry
+import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,13 +40,14 @@ fun DetailsScreen(
     ticker: String,
     price: String,
     changePercentage: String,
-    repository: Repository,
     onBackClicked: () -> Unit,
     changeAmount: String
-) {
-    val viewModel: DetailsViewModel = viewModel(factory = DetailsViewModelFactory(repository))
+)
+ {
+     val viewModel: DetailsViewModel = koinViewModel()
 
-    LaunchedEffect(key1 = ticker) {
+
+     LaunchedEffect(key1 = ticker) {
         viewModel.fetchStockDetails(ticker, "NTJBDU9U1JGKA613")
     }
 

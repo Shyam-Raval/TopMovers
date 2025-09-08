@@ -72,7 +72,7 @@ class TopMoversViewModel(private val repository: Repository) : ViewModel() {
 
             }  catch (e: ApiLimitException) {
                 // CATCH our specific API limit exception
-                errorMessage = e.message
+                errorMessage ="Api Limit Exhausted , try from another network"
             }catch (e: IOException) {
                 // Handle network errors (e.g., no internet connection).
                 errorMessage = "Network error. Please check your connection."

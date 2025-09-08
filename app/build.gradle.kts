@@ -106,6 +106,12 @@ dependencies {
     implementation("com.patrykandpatrick.vico:core:1.14.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
     implementation("com.squareup.retrofit2:converter-moshi:2.9.0")
+    // Koin for Android
+    implementation("io.insert-koin:koin-android:3.5.6")
+
+// Koin for Jetpack Compose
+    implementation("io.insert-koin:koin-androidx-compose:3.5.6")
+
 
 
 
