@@ -10,7 +10,10 @@ import com.example.topmovers.Repository.Repository
 import com.example.topmovers.Retrofit.TopMover
 import kotlinx.coroutines.launch
 import java.io.IOException
-
+import android.util.Log
+import com.example.topmovers.Retrofit.SearchResult
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 class TopMoversViewModel(private val repository: Repository) : ViewModel() {
 
 
@@ -35,6 +38,14 @@ class TopMoversViewModel(private val repository: Repository) : ViewModel() {
     var errorMessage by mutableStateOf<String?>(null)
         private set
 
+    var searchQuery by mutableStateOf("")
+        private set
+    var searchResults by mutableStateOf<List<SearchResult>>(emptyList())
+        private set
+    var isSearching by mutableStateOf(false)
+        private set
+    private var searchJob: Job? = null
+
 
     // --- Initialization ---
 
@@ -45,6 +56,39 @@ class TopMoversViewModel(private val repository: Repository) : ViewModel() {
 
 
     // --- Public Functions ---
+    fun onSearchQueryChanged(query: String) {
+        searchQuery = query
+        searchJob?.cancel() // Cancel any previous search job
+
+        if (query.isBlank()) {
+            searchResults = emptyList()
+            isSearching = false
+            return
+        }
+
+        // Launch a new search job with a debounce delay
+        searchJob = viewModelScope.launch {
+            isSearching = true
+            delay(500L) // Wait for 500ms of user inactivity before calling the API
+            try {
+                // Call the new repository function
+                searchResults = repository.searchTicker(query)
+            } catch (e: Exception) {
+                Log.e("TopMoversViewModel", "Search failed: ${e.message}")
+                searchResults = emptyList() // Clear results on error
+            } finally {
+                isSearching = false
+            }
+        }
+    }
+
+    fun clearSearch() {
+        searchQuery = ""
+        searchResults = emptyList()
+        isSearching = false
+        searchJob?.cancel()
+    }
+
 
     /**
      * Fetches top movers data from the repository.
@@ -72,7 +116,7 @@ class TopMoversViewModel(private val repository: Repository) : ViewModel() {
 
             }  catch (e: ApiLimitException) {
                 // CATCH our specific API limit exception
-                errorMessage ="Api Limit Exhausted , try from another network"
+                errorMessage ="Api Limit Exhausted. Try from another network."
             }catch (e: IOException) {
                 // Handle network errors (e.g., no internet connection).
                 errorMessage = "Network error. Please check your connection."

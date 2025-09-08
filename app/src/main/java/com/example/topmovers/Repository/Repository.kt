@@ -3,6 +3,7 @@ package com.example.topmovers.Repository
 
 import com.example.topmovers.Retrofit.CompanyInfo
 import com.example.topmovers.Retrofit.RetrofitInstance
+import com.example.topmovers.Retrofit.SearchResult
 import com.example.topmovers.Retrofit.StockDataPoint
 import com.example.topmovers.Retrofit.TopMover
 import com.example.topmovers.Retrofit.TopMoversResponse
@@ -114,6 +115,11 @@ class Repository(val watchlistDao: WatchlistDao) {
         // .values.toList() converts the map's values into a simple list.
         return timeSeriesMap.values.toList()
     }
+    suspend fun searchTicker(query: String): List<SearchResult> {
+        // Call the ApiService and return the list of "bestMatches" from the response
+        return RetrofitInstance.api.searchSymbol(keywords = query).bestMatches
+    }
+
 
 
 

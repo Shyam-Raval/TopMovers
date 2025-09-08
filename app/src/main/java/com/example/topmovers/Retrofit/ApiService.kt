@@ -3,6 +3,7 @@ package com.example.topmovers.Retrofit
 
 import retrofit2.http.GET
 import retrofit2.http.Query
+import com.example.topmovers.Retrofit.SymbolSearchResponse // Add this import
 
 interface ApiService {
    @GET("query")
@@ -33,5 +34,12 @@ interface ApiService {
       @Query("interval") interval: String? = null, // Only needed for Intraday
       @Query("apikey") apiKey: String = "NTJBDU9U1JGKA613" // Your existing key
    ): TimeSeriesResponse // It returns the new data class we just created
+
+   @GET("query")
+   suspend fun searchSymbol(
+      @Query("function") function: String = "SYMBOL_SEARCH",
+      @Query("keywords") keywords: String,
+      @Query("apikey") apiKey: String = "NTJBDU9U1JGKA613" // Your existing key
+   ): SymbolSearchResponse // Use the new data class as the return type
 
 }

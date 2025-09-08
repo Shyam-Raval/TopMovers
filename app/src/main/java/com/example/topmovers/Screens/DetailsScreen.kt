@@ -21,8 +21,6 @@ import androidx.compose.ui.text.style.Hyphens
 import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.topmovers.Repository.Repository
 import com.example.topmovers.Retrofit.CompanyInfo
 import com.example.topmovers.Retrofit.TopMover
 import com.example.topmovers.ViewModel.DetailsViewModel
@@ -42,12 +40,11 @@ fun DetailsScreen(
     changePercentage: String,
     onBackClicked: () -> Unit,
     changeAmount: String
-)
- {
-     val viewModel: DetailsViewModel = koinViewModel()
+) {
+    // ViewModel is now correctly retrieved from Koin
+    val viewModel: DetailsViewModel = koinViewModel()
 
-
-     LaunchedEffect(key1 = ticker) {
+    LaunchedEffect(key1 = ticker) {
         viewModel.fetchStockDetails(ticker, "NTJBDU9U1JGKA613")
     }
 
@@ -88,7 +85,7 @@ fun DetailsScreen(
                 actions = {
                     IconButton(onClick = { showDialog1 = true}) {
                         Icon(
-                            imageVector = if (isStockInWatchlist) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
+                            imageVector = Icons.Default.Bookmark ,
                             contentDescription = "Add to Watchlist",
                             tint = if (isStockInWatchlist) MaterialTheme.colorScheme.primary else LocalContentColor.current
                         )
@@ -115,8 +112,8 @@ fun DetailsScreen(
                     info = companyInfo,
                     currentPrice = price,
                     changePercentage = changePercentage,
-                    viewModel = viewModel, // Pass the viewModel
-                    ticker = ticker // Pass the ticker
+                    viewModel = viewModel,
+                    ticker = ticker
                 )
             }
         }
@@ -140,7 +137,8 @@ private fun DetailsContentNew(
             StockHeaderNew(
                 info = info,
                 currentPrice = currentPrice,
-                changePercentage = changePercentage
+                changePercentage = changePercentage,
+                ticker = ticker
             )
         }
         item {
@@ -158,6 +156,7 @@ private fun DetailsContentNew(
 
 @Composable
 private fun StockHeaderNew(
+    ticker: String,
     info: CompanyInfo,
     currentPrice: String,
     changePercentage: String
@@ -179,8 +178,8 @@ private fun StockHeaderNew(
                 .padding(8.dp)
         )
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = info.name ?: "N/A", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            Text(text = "${info.symbol} | ${info.assetType ?: "N/A"}", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+            Text(text = info.name ?: ticker, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(text = "$ticker | ${info.assetType ?: "N/A"}", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
         }
         Column(horizontalAlignment = Alignment.End) {
             Text(text = "$$currentPrice", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
@@ -195,9 +194,11 @@ private fun StockHeaderNew(
 
 @Composable
 private fun StockChartSection(viewModel: DetailsViewModel, ticker: String) {
+    // Observe all the necessary states from the ViewModel
     val isChartLoading = viewModel.isChartLoading
     val chartData = viewModel.chartData
     val selectedTimeRange = viewModel.selectedTimeRange
+    val chartErrorMessage = viewModel.chartErrorMessage // <-- Observe the new state
 
     val chartEntryModelProducer = ChartEntryModelProducer(
         chartData.mapIndexed { index, stockDataPoint ->
@@ -208,6 +209,7 @@ private fun StockChartSection(viewModel: DetailsViewModel, ticker: String) {
     val timeRanges = listOf("1D", "1W", "1M", "6M", "1Y")
 
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        // This Box will now handle all three states: Loading, Error, and Success
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -218,15 +220,26 @@ private fun StockChartSection(viewModel: DetailsViewModel, ticker: String) {
                 ),
             contentAlignment = Alignment.Center
         ) {
-            if (isChartLoading) {
-                CircularProgressIndicator()
-            } else {
-                Chart(
-                    chart = lineChart(),
-                    chartModelProducer = chartEntryModelProducer,
-                    startAxis = rememberStartAxis(),
-                    bottomAxis = rememberBottomAxis(),
-                )
+            when {
+                isChartLoading -> {
+                    CircularProgressIndicator()
+                }
+                chartErrorMessage != null -> {
+                    Text(
+                        text = chartErrorMessage,
+                        color = MaterialTheme.colorScheme.error,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+                else -> {
+                    Chart(
+                        chart = lineChart(),
+                        chartModelProducer = chartEntryModelProducer,
+                        startAxis = rememberStartAxis(),
+                        bottomAxis = rememberBottomAxis(),
+                    )
+                }
             }
         }
 
@@ -258,6 +271,7 @@ private fun StockChartSection(viewModel: DetailsViewModel, ticker: String) {
         }
     }
 }
+
 
 @Composable
 private fun AboutSectionNew(info: CompanyInfo) {

@@ -31,7 +31,9 @@ class DetailsViewModel(private val repository: Repository) : ViewModel() {
         private set
     var isChartLoading by mutableStateOf(false)
         private set
-    var selectedTimeRange by mutableStateOf("1D") // Default is now 1 Day
+    var chartErrorMessage by mutableStateOf<String?>(null) // <-- ADD THIS LINE
+        private set
+    var selectedTimeRange by mutableStateOf("1D")
         private set
 
     // --- State and Actions for Watchlists ---
@@ -67,7 +69,7 @@ class DetailsViewModel(private val repository: Repository) : ViewModel() {
                 // Fetch 1D chart data by default when screen loads
                 fetchChartData(ticker, "1D")
             } catch (e: Exception) {
-                errorMessage = "Failed to load stock details: ${e.message}"
+                errorMessage = "Stock details not available."
             } finally {
                 isLoading = false
             }
@@ -77,6 +79,7 @@ class DetailsViewModel(private val repository: Repository) : ViewModel() {
     fun fetchChartData(ticker: String, range: String = "1D") {
         viewModelScope.launch {
             isChartLoading = true
+            chartErrorMessage = null // <-- ADD: Clear previous chart errors
             selectedTimeRange = range
 
             val function = when (range) {
@@ -85,16 +88,15 @@ class DetailsViewModel(private val repository: Repository) : ViewModel() {
                 "1M" -> "TIME_SERIES_MONTHLY"
                 "6M" -> "TIME_SERIES_MONTHLY"
                 "1Y" -> "TIME_SERIES_MONTHLY"
-                else -> "TIME_SERIES_DAILY" // Fallback, though not used by our UI
+                else -> "TIME_SERIES_DAILY"
             }
 
             try {
                 val result = repository.getTimeSeriesData(function, ticker)
                 chartData = result.reversed()
-                Log.d("ChartDataDebug", "API returned: $result")
 
             } catch (e: Exception) {
-                errorMessage = "Could not load chart data: ${e.message}"
+                chartErrorMessage = "Could not load chart data" // <-- CHANGE
                 chartData = emptyList()
             } finally {
                 isChartLoading = false
