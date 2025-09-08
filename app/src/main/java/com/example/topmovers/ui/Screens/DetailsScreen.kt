@@ -1,6 +1,7 @@
 package com.example.topmovers.ui.Screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -30,7 +31,7 @@ import com.patrykandpatrick.vico.compose.chart.line.lineChart
 import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
 import com.patrykandpatrick.vico.core.entry.FloatEntry
 import org.koin.androidx.compose.koinViewModel
-import com.example.topmovers.BuildConfig // ADDED: Import BuildConfig
+import com.example.topmovers.BuildConfig
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,7 +42,6 @@ fun DetailsScreen(
     onBackClicked: () -> Unit,
     changeAmount: String
 ) {
-    // ViewModel is now correctly retrieved from Koin
     val viewModel: DetailsViewModel = koinViewModel()
 
     LaunchedEffect(key1 = ticker) {
@@ -82,22 +82,18 @@ fun DetailsScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
-                // MODIFIED: Set the colors for the TopAppBar
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary, // Green background
-                    titleContentColor = Color.White,                   // White title
-                    navigationIconContentColor = Color.White,          // White back arrow
-                    actionIconContentColor = Color.White               // White bookmark icon
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = Color.White,
+                    navigationIconContentColor = Color.White,
+                    actionIconContentColor = Color.White
                 ),
                 actions = {
                     IconButton(onClick = { showDialog1 = true}) {
                         Icon(
                             imageVector = Icons.Default.Bookmark ,
                             contentDescription = "Add to Watchlist",
-                            // The tint is now always white due to actionIconContentColor
-                            // but you could re-introduce logic if you want a *different* color when active
-                            // For now, it will be white like the other action icons.
-                            tint = if (isStockInWatchlist) Color.Yellow else Color.White // Example: Yellow when active, white otherwise
+                            tint = if (isStockInWatchlist) Color.Yellow else Color.White
                         )
                     }
                 }
@@ -204,11 +200,10 @@ private fun StockHeaderNew(
 
 @Composable
 private fun StockChartSection(viewModel: DetailsViewModel, ticker: String) {
-    // Observe all the necessary states from the ViewModel
     val isChartLoading = viewModel.isChartLoading
     val chartData = viewModel.chartData
     val selectedTimeRange = viewModel.selectedTimeRange
-    val chartErrorMessage = viewModel.chartErrorMessage // <-- Observe the new state
+    val chartErrorMessage = viewModel.chartErrorMessage
 
     val chartEntryModelProducer = ChartEntryModelProducer(
         chartData.mapIndexed { index, stockDataPoint ->
@@ -219,7 +214,6 @@ private fun StockChartSection(viewModel: DetailsViewModel, ticker: String) {
     val timeRanges = listOf("1D", "1W", "1M", "6M", "1Y")
 
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        // This Box will now handle all three states: Loading, Error, and Success
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -319,28 +313,120 @@ private fun KeyStatsSectionNew(info: CompanyInfo, currentPrice: String) {
     }
 }
 
+/**
+ * A visual indicator showing the current price relative to its 52-week high and low.
+ * This is the updated UI component based on your request.
+ *
+ * @param low The 52-week low price.
+ * @param high The 52-week high price.
+ * @param current The current price.
+ */
 @Composable
 private fun PriceRangeIndicator(low: Double, high: Double, current: Double) {
-    Column {
-        BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-            val range = (high - low).toFloat()
-            val currentPositionPercent = if (range > 0) ((current - low).toFloat() / range) else 0.5f
-            val offset = (this.maxWidth * currentPositionPercent).coerceIn(0.dp, this.maxWidth)
+    // Format the price values to two decimal places for display.
+    val formattedLow = "%.2f".format(low)
+    val formattedHigh = "%.2f".format(high)
+    val formattedCurrent = "%.2f".format(current)
 
-            Divider(modifier = Modifier.align(Alignment.CenterStart), thickness = 4.dp, color = MaterialTheme.colorScheme.surfaceVariant)
-            Column(modifier = Modifier.offset(x = offset - 6.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                Box(modifier = Modifier.size(12.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primary))
-                Spacer(Modifier.height(2.dp))
-                Text(text = "Current price: $$current", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+    Column(modifier = Modifier.fillMaxWidth()) {
+        // BoxWithConstraints is used to measure the available width, which is needed to
+        // calculate the exact position of the current price indicator on the line.
+        BoxWithConstraints(
+            modifier = Modifier
+                .fillMaxWidth()
+                // Add vertical padding to ensure the indicator and its label have enough space.
+                .padding(top = 24.dp, bottom = 12.dp)
+        ) {
+            // Calculate the position of the current price as a fraction (from 0.0 to 1.0)
+            // along the 52-week range.
+            val range = high - low
+            val currentPositionFraction = if (range > 0) {
+                ((current - low) / range).toFloat()
+            } else {
+                0.5f // Default to the middle if the range is zero.
+            }
+
+            // Convert the fraction into a Dp value to set the horizontal offset of the indicator.
+            // `coerceIn` prevents the indicator from going outside the bounds of the line.
+            val indicatorOffset = (maxWidth * currentPositionFraction).coerceIn(12.dp, maxWidth - 12.dp)
+
+            // 1. The 52-week range line.
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(6.dp)
+                    .background(MaterialTheme.colorScheme.surfaceVariant, shape = CircleShape)
+                    .align(Alignment.Center)
+            )
+
+            // This Column group contains the current price text and the sphere.
+            // It's positioned horizontally using the calculated offset.
+            Column(
+                // The offset is adjusted to center the indicator (which is 24.dp wide).
+                modifier = Modifier.offset(x = indicatorOffset - 12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // 3. The "current price" text, positioned above the sphere.
+                Text(
+                    text = "$$formattedCurrent",
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier
+                        .background(
+                            color = MaterialTheme.colorScheme.surface,
+                            shape = RoundedCornerShape(4.dp)
+                        )
+                        .padding(horizontal = 4.dp, vertical = 2.dp)
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                // 2. The "sphere" indicator.
+                Box(
+                    modifier = Modifier
+                        .size(24.dp) // Larger size for better visibility.
+                        .background(MaterialTheme.colorScheme.primary, shape = CircleShape)
+                        .border(2.dp, MaterialTheme.colorScheme.surface, CircleShape)
+                )
             }
         }
-        Spacer(Modifier.height(4.dp))
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text("52-Week Low\n$${"%.2f".format(low)}", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
-            Text("52-Week High\n$${"%.2f".format(high)}", style = MaterialTheme.typography.bodySmall, color = Color.Gray, textAlign = TextAlign.End)
+
+        // Labels for the 52-Week Low and High values, positioned below the line.
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column {
+                Text(
+                    "52-Wk Low",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.Gray
+                )
+                Text(
+                    "$$formattedLow",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    "52-Wk High",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.Gray,
+                    textAlign = TextAlign.End
+                )
+                Text(
+                    "$$formattedHigh",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    textAlign = TextAlign.End
+                )
+            }
         }
     }
 }
+
 
 @Composable
 private fun KeyStatsGrid(info: CompanyInfo) {

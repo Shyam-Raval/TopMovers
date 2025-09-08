@@ -241,9 +241,10 @@ fun GreetingTopAppBar(
 
     TopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = primaryGreen,
-            titleContentColor = Color.White,
-            actionIconContentColor = Color.White
+            containerColor = MaterialTheme.colorScheme.primary, // Green background
+            titleContentColor = Color.White,                   // White title
+            navigationIconContentColor = Color.White,          // White back arrow
+            actionIconContentColor = Color.White               // White bookmark icon
         ),
         title = {
             Text(
@@ -281,9 +282,10 @@ fun SearchTopAppBar(
 
     TopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = primaryGreen,
-            navigationIconContentColor = Color.White,
-            actionIconContentColor = Color.White
+            containerColor = MaterialTheme.colorScheme.primary, // Green background
+            titleContentColor = Color.White,                   // White title
+            navigationIconContentColor = Color.White,          // White back arrow
+            actionIconContentColor = Color.White               // White bookmark icon
         ),
         navigationIcon = {
             IconButton(onClick = onCloseSearch) {

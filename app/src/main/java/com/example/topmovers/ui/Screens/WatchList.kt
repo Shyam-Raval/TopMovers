@@ -47,9 +47,10 @@ fun WatchlistScreen(
                 title = { Text("My Watchlists", fontWeight = FontWeight.Bold) },
                 // --- CHANGE: Reverted TopAppBar to green like the Explore page ---
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = topBarGreen,
-                    titleContentColor = Color.White,
-                    actionIconContentColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.primary, // Green background
+                    titleContentColor = Color.White,                   // White title
+                    navigationIconContentColor = Color.White,          // White back arrow
+                    actionIconContentColor = Color.White               // White bookmark icon
                 ),
                 actions = {
                     IconButton(onClick = { showAddDialog = true }) {
