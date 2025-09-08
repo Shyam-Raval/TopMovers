@@ -23,13 +23,11 @@ fun WatchlistDetailScreen(
     navController: NavHostController,
     onBackClicked: () -> Unit
 ) {
-    // 1. Collect the new 'uiState' from the ViewModel
     val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
         topBar = {
             TopAppBar(
-                // 2. Use the properties from the new 'uiState'
                 title = { Text(uiState.watchlistName.ifEmpty { "Loading..." }) },
                 navigationIcon = {
                     IconButton(onClick = onBackClicked) {
@@ -43,7 +41,6 @@ fun WatchlistDetailScreen(
             modifier = Modifier.fillMaxSize().padding(innerPadding),
             contentAlignment = Alignment.Center
         ) {
-            // 3. The rest of the UI also uses 'uiState'
             when {
                 uiState.isLoading -> CircularProgressIndicator()
                 uiState.error != null -> Text(uiState.error!!, color = MaterialTheme.colorScheme.error)

@@ -1,4 +1,3 @@
-// File: com/example/topmovers/Room/AppDatabase.kt
 
 package com.example.topmovers.data.local
 
@@ -15,9 +14,9 @@ import com.example.topmovers.data.model.WatchList
         WatchList::class,
         TopMover::class,
         WatchlistStockCrossRef::class,
-        CompanyInfo::class // NEW: Add CompanyInfo entity
+        CompanyInfo::class
     ],
-    version = 2, // MODIFICATION: Bump version from 1 to 2
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -25,15 +24,13 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun watchlistDao(): WatchlistDao
 
     companion object {
-        // NEW: This is the migration logic from version 1 to 2.
+
         val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(db: SupportSQLiteDatabase) {
-                // 1. Create the new company_info table
                 db.execSQL(
                     "CREATE TABLE IF NOT EXISTS `company_info` (`symbol` TEXT NOT NULL, `name` TEXT, `description` TEXT, `assetType` TEXT, `sector` TEXT, `industry` TEXT, `marketCap` TEXT, `peRatio` TEXT, `beta` TEXT, `dividendYield` TEXT, `profitMargin` TEXT, `week52High` TEXT, `week52Low` TEXT, `exchange` TEXT, `lastFetched` INTEGER NOT NULL, PRIMARY KEY(`symbol`))"
                 )
 
-                // 2. Rebuild the 'stocks' table to support the new schema (composite primary key and new columns)
                 db.execSQL(
                     "CREATE TABLE `stocks_new` (`ticker` TEXT NOT NULL, `price` TEXT NOT NULL, `changeAmount` TEXT NOT NULL, `changePercentage` TEXT NOT NULL, `volume` TEXT NOT NULL, `cacheType` TEXT NOT NULL, `lastFetched` INTEGER NOT NULL, PRIMARY KEY(`ticker`, `cacheType`))"
                 )

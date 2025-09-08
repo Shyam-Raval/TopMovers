@@ -30,10 +30,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            // State to hold the current theme choice (light/dark)
             var useDarkTheme by remember { mutableStateOf(false) }
 
-            // Pass the state to our theme, which will wrap the entire app
             TopMoversTheme(darkTheme = useDarkTheme) {
                 val viewModel: TopMoversViewModel = koinViewModel()
                 val watchlistViewModel: WatchlistViewModel = koinViewModel()
@@ -47,7 +45,6 @@ class MainActivity : ComponentActivity() {
                         ExploreScreen(
                             viewModel = viewModel,
                             navController = navController,
-                            // Pass the current theme state and the toggle function
                             useDarkTheme = useDarkTheme,
                             onThemeToggle = { useDarkTheme = !useDarkTheme },
                             onNavigateToTopGainers = {

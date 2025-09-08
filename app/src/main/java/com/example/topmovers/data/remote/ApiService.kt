@@ -15,20 +15,20 @@ interface ApiService {
       function: String = "TOP_GAINERS_LOSERS",
 
       @Query("apikey")
-      apiKey: String // API key is now a required parameter
+      apiKey: String
    ): TopMoversResponse
 
    @GET("query")
    suspend fun getCompanyOverview(
       @Query("function") function: String = "OVERVIEW",
       @Query("symbol") symbol: String,
-      @Query("apikey") apiKey: String // API key is now a required parameter
+      @Query("apikey") apiKey: String
    ): CompanyInfo
 
    @GET("query?function=GLOBAL_QUOTE")
    suspend fun getQuote(
       @Query("symbol") symbol: String,
-      @Query("apikey") apiKey: String // API key is now a required parameter
+      @Query("apikey") apiKey: String
    ): GlobalQuoteResponse
 
    @GET("query")
@@ -36,14 +36,14 @@ interface ApiService {
       @Query("function") function: String,
       @Query("symbol") symbol: String,
       @Query("interval") interval: String? = null,
-      @Query("apikey") apiKey: String // API key is now a required parameter
+      @Query("apikey") apiKey: String
    ): TimeSeriesResponse
 
    @GET("query")
    suspend fun searchSymbol(
       @Query("function") function: String = "SYMBOL_SEARCH",
       @Query("keywords") keywords: String,
-      @Query("apikey") apiKey: String // API key is now a required parameter
+      @Query("apikey") apiKey: String
    ): SymbolSearchResponse
 
 }

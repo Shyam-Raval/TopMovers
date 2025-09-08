@@ -33,7 +33,7 @@ import com.example.topmovers.ui.components.TopMoverItem
 fun TopGainersScreen(
     topGainers: List<TopMover>,
     onBackClicked: () -> Unit,
-    navController: NavHostController // CHANGED: Added NavController
+    navController: NavHostController
 ) {
     Scaffold(
         topBar = {
@@ -48,10 +48,10 @@ fun TopGainersScreen(
                     }
                 } ,
                 colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.primary, // Green background
-                titleContentColor = Color.White,                   // White title
-                navigationIconContentColor = Color.White,          // White back arrow
-                actionIconContentColor = Color.White               // White bookmark icon
+                        containerColor = MaterialTheme.colorScheme.primary,
+                titleContentColor = Color.White,
+                navigationIconContentColor = Color.White,
+                actionIconContentColor = Color.White
             ),
             )
         }

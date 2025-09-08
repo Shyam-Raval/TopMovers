@@ -1,4 +1,3 @@
-// File: com/example/topmovers/Room/WatchlistDao.kt
 
 package com.example.topmovers.data.local
 
@@ -11,7 +10,6 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface WatchlistDao {
 
-    // --- Insert Operations (Existing) ---
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertWatchlist(watchlist: WatchList): Long
     @Insert(onConflict = OnConflictStrategy.IGNORE)
@@ -19,13 +17,11 @@ interface WatchlistDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertWatchlistStockCrossRef(crossRef: WatchlistStockCrossRef)
 
-    // --- Delete Operations (Existing) ---
     @Delete
     suspend fun deleteWatchlist(watchlist: WatchList)
     @Delete
     suspend fun deleteStockFromWatchlist(crossRef: WatchlistStockCrossRef)
 
-    // --- Query (Read) Operations (Existing) ---
     @Query("SELECT * FROM watchlists ORDER BY name ASC")
     fun getAllWatchlists(): Flow<List<WatchList>>
     @Transaction
@@ -34,7 +30,6 @@ interface WatchlistDao {
     @Query("SELECT EXISTS(SELECT 1 FROM watchlist_stock_cross_ref WHERE ticker = :ticker LIMIT 1)")
     fun isStockInWatchlist(ticker: String): Flow<Boolean>
 
-    // --- NEW: CACHE OPERATIONS FOR TOP MOVERS ---
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTopMovers(movers: List<TopMover>)
@@ -49,7 +44,6 @@ interface WatchlistDao {
     suspend fun getTopMoversLastFetched(type: String): Long?
 
 
-    // --- NEW: CACHE OPERATIONS FOR COMPANY INFO ---
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCompanyInfo(info: CompanyInfo)

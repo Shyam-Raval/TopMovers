@@ -2,8 +2,6 @@ package com.example.topmovers.data.model
 
 import com.squareup.moshi.Json
 
-// This is the main container for the entire API response.
-// We make each time series nullable because only one will be present in any given API call.
 data class TimeSeriesResponse(
     @Json(name = "Meta Data")
     val metaData: MetaData,
@@ -21,13 +19,11 @@ data class TimeSeriesResponse(
     val monthlyData: Map<String, StockDataPoint>? = null
 )
 
-// This holds the metadata, like the stock symbol.
 data class MetaData(
     @Json(name = "2. Symbol")
     val symbol: String
 )
 
-// This represents a single data point on the chart (e.g., one day's prices).
 data class StockDataPoint(
     @Json(name = "1. open")
     val open: String,

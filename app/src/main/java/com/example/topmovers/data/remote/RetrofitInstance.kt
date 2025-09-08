@@ -11,12 +11,10 @@ object RetrofitInstance {
 
     private const val BASE_URL = "https://www.alphavantage.co/"
 
-    // --- Create the Logger ---
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
-        level = HttpLoggingInterceptor.Level.BODY // This will log the entire response body
+        level = HttpLoggingInterceptor.Level.BODY
     }
 
-    // --- Create the OkHttp Client and add the logger ---
     private val okHttpClient = OkHttpClient.Builder()
         .addInterceptor(loggingInterceptor)
         .build()
@@ -25,11 +23,10 @@ object RetrofitInstance {
         .add(KotlinJsonAdapterFactory())
         .build()
 
-    // --- Update Retrofit to use our new client ---
     private val retrofit by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
-            .client(okHttpClient) // Add the custom client
+            .client(okHttpClient)
             .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()
     }

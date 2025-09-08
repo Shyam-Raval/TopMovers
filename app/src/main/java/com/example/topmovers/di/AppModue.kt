@@ -1,4 +1,3 @@
-// File: com/example/topmovers/di/AppModule.kt
 
 package com.example.topmovers.di
 
@@ -21,7 +20,7 @@ val appModule = module {
             AppDatabase::class.java,
             "top_movers_database"
         )
-            .addMigrations(MIGRATION_1_2) // NEW: Add the migration here
+            .addMigrations(MIGRATION_1_2)
             .build()
     }
 

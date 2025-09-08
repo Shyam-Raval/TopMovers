@@ -1,6 +1,6 @@
 package com.example.topmovers.data.model
 
-import com.squareup.moshi.Json // Use Moshi's annotation
+import com.squareup.moshi.Json
 
 data class GlobalQuoteResponse(
     @Json(name = "Global Quote")

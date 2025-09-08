@@ -38,19 +38,17 @@ fun WatchlistScreen(
     var showAddDialog by remember { mutableStateOf(false) }
     var watchlistToDelete by remember { mutableStateOf<WatchList?>(null) }
 
-    // Define the green color for the TopAppBar
     val topBarGreen = Color(0xFF16A782)
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("My Watchlists", fontWeight = FontWeight.Bold) },
-                // --- CHANGE: Reverted TopAppBar to green like the Explore page ---
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary, // Green background
-                    titleContentColor = Color.White,                   // White title
-                    navigationIconContentColor = Color.White,          // White back arrow
-                    actionIconContentColor = Color.White               // White bookmark icon
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = Color.White,
+                    navigationIconContentColor = Color.White,
+                    actionIconContentColor = Color.White
                 ),
                 actions = {
                     IconButton(onClick = { showAddDialog = true }) {
@@ -71,7 +69,7 @@ fun WatchlistScreen(
             contentAlignment = Alignment.Center
         ) {
             if (watchlists.isEmpty()) {
-                // The Empty State UI remains the same with the pale purple theme
+
                 EmptyWatchlistState(
                     onExploreClick = {
                         navController.navigate(Screens.Explore.route) {
@@ -129,7 +127,6 @@ private fun EmptyWatchlistState(
     onExploreClick: () -> Unit,
     onCreateWatchlistClick: () -> Unit
 ) {
-    // This component keeps the improved pale purple theme
     val palePurple = Color(0xFFB39DDB)
     val darkPurpleText = Color(0xFF4527A0)
     val ultraLightPurple = Color(0xFFF3E5F5)
@@ -213,7 +210,6 @@ private fun EmptyWatchlistState(
 }
 
 
-// No changes are needed for the composables below this line.
 
 @Composable
 fun WatchlistItem(

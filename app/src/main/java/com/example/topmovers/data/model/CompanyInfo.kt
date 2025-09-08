@@ -1,4 +1,3 @@
-// File: com/example/topmovers/Retrofit/CompanyInfo.kt
 
 package com.example.topmovers.data.model
 
@@ -6,12 +5,11 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.squareup.moshi.Json
 
-// MODIFICATION: Add @Entity annotation, a @PrimaryKey, and a lastFetched field.
 @Entity(tableName = "company_info")
 data class CompanyInfo(
-    @PrimaryKey // The stock symbol is the unique key for this table.
+    @PrimaryKey
     @Json(name = "Symbol")
-    val symbol: String, // Made non-nullable to serve as a valid primary key.
+    val symbol: String,
 
     @Json(name = "Name")
     val name: String?,
@@ -40,6 +38,5 @@ data class CompanyInfo(
     @Json(name = "Exchange")
     val exchange: String?,
 
-    // NEW: A timestamp to check for cache expiration.
     var lastFetched: Long = 0L
 )

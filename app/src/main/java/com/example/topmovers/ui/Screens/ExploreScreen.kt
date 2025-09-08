@@ -149,7 +149,6 @@ fun TopMoversContent(
     onNavigateToTopGainers: () -> Unit,
     onNavigateToTopLosers: () -> Unit
 ) {
-    // Define colors for the "View All" text
     val viewAllGreen = Color(0xFF16A782)
     val viewAllRed = Color(0xFFD50000)
 
@@ -177,7 +176,7 @@ fun TopMoversContent(
                             SectionHeader(
                                 title = "Top Gainers",
                                 onViewAllClicked = onNavigateToTopGainers,
-                                actionTextColor = viewAllGreen // Pass green color
+                                actionTextColor = viewAllGreen
                             )
                         }
                         items(topGainers.take(4)) { mover ->
@@ -241,10 +240,10 @@ fun GreetingTopAppBar(
 
     TopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.primary, // Green background
-            titleContentColor = Color.White,                   // White title
-            navigationIconContentColor = Color.White,          // White back arrow
-            actionIconContentColor = Color.White               // White bookmark icon
+            containerColor = MaterialTheme.colorScheme.primary,
+            titleContentColor = Color.White,
+            navigationIconContentColor = Color.White,
+            actionIconContentColor = Color.White
         ),
         title = {
             Text(
@@ -282,10 +281,10 @@ fun SearchTopAppBar(
 
     TopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.primary, // Green background
-            titleContentColor = Color.White,                   // White title
-            navigationIconContentColor = Color.White,          // White back arrow
-            actionIconContentColor = Color.White               // White bookmark icon
+            containerColor = MaterialTheme.colorScheme.primary,
+            titleContentColor = Color.White,
+            navigationIconContentColor = Color.White,
+            actionIconContentColor = Color.White
         ),
         navigationIcon = {
             IconButton(onClick = onCloseSearch) {
@@ -374,7 +373,7 @@ fun StocksBottomNav(navController: NavHostController) {
 fun SectionHeader(
     title: String,
     onViewAllClicked: () -> Unit,
-    actionTextColor: Color = MaterialTheme.colorScheme.primary // Default color
+    actionTextColor: Color = MaterialTheme.colorScheme.primary
 ) {
     Row(
         modifier = Modifier
@@ -391,7 +390,7 @@ fun SectionHeader(
         TextButton(onClick = onViewAllClicked) {
             Text(
                 text = "View All",
-                color = actionTextColor // Use the passed-in color
+                color = actionTextColor
             )
         }
     }

@@ -313,44 +313,28 @@ private fun KeyStatsSectionNew(info: CompanyInfo, currentPrice: String) {
     }
 }
 
-/**
- * A visual indicator showing the current price relative to its 52-week high and low.
- * This is the updated UI component based on your request.
- *
- * @param low The 52-week low price.
- * @param high The 52-week high price.
- * @param current The current price.
- */
+
 @Composable
 private fun PriceRangeIndicator(low: Double, high: Double, current: Double) {
-    // Format the price values to two decimal places for display.
     val formattedLow = "%.2f".format(low)
     val formattedHigh = "%.2f".format(high)
     val formattedCurrent = "%.2f".format(current)
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        // BoxWithConstraints is used to measure the available width, which is needed to
-        // calculate the exact position of the current price indicator on the line.
         BoxWithConstraints(
             modifier = Modifier
                 .fillMaxWidth()
-                // Add vertical padding to ensure the indicator and its label have enough space.
                 .padding(top = 24.dp, bottom = 12.dp)
         ) {
-            // Calculate the position of the current price as a fraction (from 0.0 to 1.0)
-            // along the 52-week range.
             val range = high - low
             val currentPositionFraction = if (range > 0) {
                 ((current - low) / range).toFloat()
             } else {
-                0.5f // Default to the middle if the range is zero.
+                0.5f
             }
 
-            // Convert the fraction into a Dp value to set the horizontal offset of the indicator.
-            // `coerceIn` prevents the indicator from going outside the bounds of the line.
             val indicatorOffset = (maxWidth * currentPositionFraction).coerceIn(12.dp, maxWidth - 12.dp)
 
-            // 1. The 52-week range line.
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -359,14 +343,10 @@ private fun PriceRangeIndicator(low: Double, high: Double, current: Double) {
                     .align(Alignment.Center)
             )
 
-            // This Column group contains the current price text and the sphere.
-            // It's positioned horizontally using the calculated offset.
             Column(
-                // The offset is adjusted to center the indicator (which is 24.dp wide).
                 modifier = Modifier.offset(x = indicatorOffset - 12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // 3. The "current price" text, positioned above the sphere.
                 Text(
                     text = "$$formattedCurrent",
                     style = MaterialTheme.typography.bodySmall,
@@ -382,7 +362,6 @@ private fun PriceRangeIndicator(low: Double, high: Double, current: Double) {
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                // 2. The "sphere" indicator.
                 Box(
                     modifier = Modifier
                         .size(24.dp) // Larger size for better visibility.
@@ -392,7 +371,6 @@ private fun PriceRangeIndicator(low: Double, high: Double, current: Double) {
             }
         }
 
-        // Labels for the 52-Week Low and High values, positioned below the line.
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
