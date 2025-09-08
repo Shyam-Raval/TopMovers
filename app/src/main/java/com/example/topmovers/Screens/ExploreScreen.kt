@@ -20,7 +20,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
@@ -62,16 +64,15 @@ import com.example.topmovers.ui.components.TopMoverItem
 fun ExploreScreen(
     viewModel: TopMoversViewModel,
     navController: NavHostController,
+    useDarkTheme: Boolean,
+    onThemeToggle: () -> Unit,
     onNavigateToTopGainers: () -> Unit,
     onNavigateToTopLosers: () -> Unit
 ) {
-    // Observe the existing states from the ViewModel
     val isLoading = viewModel.isLoading
     val errorMessage = viewModel.errorMessage
     val topGainers = viewModel.topGainers
     val topLosers = viewModel.topLosers
-
-    // Observe the new search states from the ViewModel
     val searchQuery = viewModel.searchQuery
     val searchResults = viewModel.searchResults
     val isSearching = viewModel.isSearching
@@ -81,7 +82,9 @@ fun ExploreScreen(
             StocksTopAppBar(
                 searchText = searchQuery,
                 onSearchChanged = { viewModel.onSearchQueryChanged(it) },
-                onClearSearch = { viewModel.clearSearch() }
+                onClearSearch = { viewModel.clearSearch() },
+                useDarkTheme = useDarkTheme,
+                onThemeToggle = onThemeToggle
             )
         },
         bottomBar = { StocksBottomNav(navController = navController) }
@@ -91,7 +94,6 @@ fun ExploreScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            // Your original content for Top Movers
             TopMoversContent(
                 isLoading = isLoading,
                 errorMessage = errorMessage,
@@ -102,19 +104,17 @@ fun ExploreScreen(
                 onNavigateToTopLosers = onNavigateToTopLosers
             )
 
-            // Conditionally display the search overlay
             if (searchQuery.isNotBlank()) {
                 SearchOverlay(
                     isSearching = isSearching,
                     results = searchResults,
                     onResultClick = { ticker ->
-                        // When a result is clicked, navigate to the details screen
                         navController.navigate(
                             Screens.StockDetails.createRoute(
                                 ticker = ticker,
-                                price = "0.00", // Pass a placeholder
-                                changeAmount = "0.00", // Pass a placeholder
-                                changePercentage = "0.00%" // Pass a placeholder
+                                price = "0.00",
+                                changeAmount = "0.00",
+                                changePercentage = "0.00%"
                             )
                         )
                     }
@@ -211,11 +211,13 @@ fun TopMoversContent(
 fun StocksTopAppBar(
     searchText: String,
     onSearchChanged: (String) -> Unit,
-    onClearSearch: () -> Unit
+    onClearSearch: () -> Unit,
+    useDarkTheme: Boolean,
+    onThemeToggle: () -> Unit
 ) {
     TopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = Color(0xFFE9F9F0) // A very light, pale green
+            containerColor = MaterialTheme.colorScheme.primaryContainer
         ),
         title = {
             Row(
@@ -227,7 +229,7 @@ fun StocksTopAppBar(
                     text = "TopMovers",
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
-                    color = Color(0xFF212121), // Dark gray text
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
                     fontFamily = FontFamily.SansSerif,
                     fontSize = 22.sp,
                     modifier = Modifier.weight(1f)
@@ -237,7 +239,6 @@ fun StocksTopAppBar(
                     value = searchText,
                     onValueChange = onSearchChanged,
                     placeholder = { Text("Search...", fontSize = 15.sp) },
-                    //leadingIcon = { Icon(Icons.Default.Search, "Search Icon") },
                     trailingIcon = {
                         if (searchText.isNotBlank()) {
                             IconButton(onClick = onClearSearch) {
@@ -252,9 +253,7 @@ fun StocksTopAppBar(
                         unfocusedIndicatorColor = Color.Transparent,
                         focusedIndicatorColor = Color.Transparent,
                         disabledContainerColor = Color.Transparent,
-                        focusedTextColor = Color.Black,
-                        unfocusedTextColor = Color.Black,
-                        cursorColor = Color.Black,
+                        cursorColor = MaterialTheme.colorScheme.onSurface,
                         focusedLeadingIconColor = Color.DarkGray,
                         unfocusedLeadingIconColor = Color.DarkGray,
                         unfocusedPlaceholderColor = Color.Gray,
@@ -264,7 +263,14 @@ fun StocksTopAppBar(
                 )
             }
         },
-        actions = {}
+        actions = {
+            IconButton(onClick = onThemeToggle) {
+                Icon(
+                    imageVector = if (useDarkTheme) Icons.Default.LightMode else Icons.Default.DarkMode,
+                    contentDescription = "Toggle Theme"
+                )
+            }
+        }
     )
 }
 
@@ -294,8 +300,7 @@ fun StocksBottomNav(navController: NavHostController) {
             icon = {
                 Icon(
                     imageVector = Icons.Default.Bookmark,
-                    contentDescription = "Add to Watchlist",
-                    tint = MaterialTheme.colorScheme.primary
+                    contentDescription = "Add to Watchlist"
                 )
             },
             selected = currentDestination?.hierarchy?.any { it.route == Screens.Watchlist.route } == true,

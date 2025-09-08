@@ -1,4 +1,3 @@
-
 package com.example.topmovers.Repository
 
 import com.example.topmovers.Retrofit.CompanyInfo
@@ -13,79 +12,169 @@ import com.example.topmovers.Room.WatchlistStockCrossRef
 import com.example.topmovers.Room.WatchlistWithStocks
 import kotlinx.coroutines.flow.Flow
 import java.io.IOException
+import java.util.concurrent.TimeUnit
+import com.squareup.moshi.JsonDataException
 
 class ApiLimitException(message: String) : IOException(message)
 
-/**
- * The repository requires the watchlistDao to talk to the database,
- * so we pass it in the constructor.
- */
-class Repository(val watchlistDao: WatchlistDao) {
+class Repository(private val watchlistDao: WatchlistDao) {
+
+    companion object {
+        // Cache duration for the list of top movers (30 minutes)
+        private val TOP_MOVERS_CACHE_DURATION = TimeUnit.MINUTES.toMillis(30)
+        // Cache duration for individual stock company details (24 hours)
+        private val COMPANY_INFO_CACHE_DURATION = TimeUnit.HOURS.toMillis(24)
+    }
 
     // --- DATABASE OPERATIONS ---
 
-    /**
-     * A live stream of all watchlists from the database.
-     */
     val allWatchlists: Flow<List<WatchList>> = watchlistDao.getAllWatchlists()
 
-    /**
-     * Adds a new watchlist to the database.
-     */
     suspend fun addWatchlist(name: String): Long {
         val newWatchlist = WatchList(name = name)
         return watchlistDao.insertWatchlist(newWatchlist)
-
     }
 
-    /**
-     * Removes a watchlist from the database.
-     */
     suspend fun removeWatchlist(watchlist: WatchList) {
         watchlistDao.deleteWatchlist(watchlist)
     }
 
-    /**
-     * Adds a stock to a specific watchlist.
-     */
     suspend fun addStockToWatchlist(stock: TopMover, watchlistId: Long) {
-        watchlistDao.insertStock(stock)
+        // We must clear the cache-specific fields before inserting into a personal watchlist.
+        val cleanStock = stock.copy(cacheType = "", lastFetched = 0L)
+        watchlistDao.insertStock(cleanStock)
         val crossRef = WatchlistStockCrossRef(watchlistId = watchlistId, ticker = stock.ticker)
         watchlistDao.insertWatchlistStockCrossRef(crossRef)
     }
 
-    // --- NETWORK (API) OPERATIONS ---
+    // --- NETWORK (API) & CACHE OPERATIONS ---
 
     /**
-     * Fetches the list of top gainers and losers from the network.
+     * Fetches the list of top gainers and losers from the network OR the local cache.
      */
     suspend fun getTopMoversFromApi(apiKey: String): TopMoversResponse {
-        val response = RetrofitInstance.api.getTopMovers(apiKey = apiKey)
-        if (response.information != null) {
-            throw ApiLimitException("API rate limit reached. Please try again later.")
+        val currentTime = System.currentTimeMillis()
+        val lastFetchedTime = watchlistDao.getTopMoversLastFetched("top_gainers")
+
+        // 1. CHECK CACHE: If data exists and is not expired, serve from the database.
+        if (lastFetchedTime != null && (currentTime - lastFetchedTime < TOP_MOVERS_CACHE_DURATION)) {
+            val cachedGainers = watchlistDao.getTopMovers("top_gainers")
+            val cachedLosers = watchlistDao.getTopMovers("top_losers")
+            val cachedActives = watchlistDao.getTopMovers("most_actively_traded")
+
+            return TopMoversResponse(
+                information = null,
+                metadata = "Data from cache",
+                lastUpdated = "",
+                topGainers = cachedGainers,
+                topLosers = cachedLosers,
+                mostActivelyTraded = cachedActives
+            )
         }
-        return response
+
+        // 2. FETCH FROM NETWORK: If cache is stale or empty, make the API call.
+        try {
+            val response = RetrofitInstance.api.getTopMovers(apiKey = apiKey)
+            if (response.information != null) {
+                throw ApiLimitException("API rate limit reached. Please try again later.")
+            }
+
+            // 3. UPDATE CACHE: On success, clear old data and save new data with a timestamp.
+            val timestamp = System.currentTimeMillis()
+
+            response.topGainers?.let {
+                val gainers = it.map { mover -> mover.copy(cacheType = "top_gainers", lastFetched = timestamp) }
+                watchlistDao.deleteTopMovers("top_gainers")
+                watchlistDao.insertTopMovers(gainers)
+            }
+            response.topLosers?.let {
+                val losers = it.map { mover -> mover.copy(cacheType = "top_losers", lastFetched = timestamp) }
+                watchlistDao.deleteTopMovers("top_losers")
+                watchlistDao.insertTopMovers(losers)
+            }
+            response.mostActivelyTraded?.let {
+                val actives = it.map { mover -> mover.copy(cacheType = "most_actively_traded", lastFetched = timestamp) }
+                watchlistDao.deleteTopMovers("most_actively_traded")
+                watchlistDao.insertTopMovers(actives)
+            }
+            return response
+        } catch (e: Exception) {
+            // 4. FALLBACK: On network error, try to serve stale data from the cache.
+            val cachedGainers = watchlistDao.getTopMovers("top_gainers")
+            if (cachedGainers.isNotEmpty()) {
+                val cachedLosers = watchlistDao.getTopMovers("top_losers")
+                val cachedActives = watchlistDao.getTopMovers("most_actively_traded")
+                return TopMoversResponse(null, "Stale data from cache", "", cachedGainers, cachedLosers, cachedActives)
+            }
+            // If there's no cached data at all, re-throw the original exception.
+            throw e
+        }
     }
 
     /**
-     * Fetches the detailed company overview for a single stock from the network.
+     * Fetches the detailed company overview for a single stock from the network OR the local cache.
      */
     suspend fun getCompanyOverview(ticker: String, apiKey: String): CompanyInfo {
-        return RetrofitInstance.api.getCompanyOverview(symbol = ticker, apiKey = apiKey)
+        val currentTime = System.currentTimeMillis()
+        val cachedInfo = watchlistDao.getCompanyInfo(ticker)
+
+        // 1. CHECK CACHE: If data exists and is not expired, serve from the database.
+        if (cachedInfo != null && (currentTime - cachedInfo.lastFetched < COMPANY_INFO_CACHE_DURATION)) {
+            return cachedInfo
+        }
+
+        // 2. FETCH FROM NETWORK: If cache is stale or empty, make the API call.
+        try {
+            val networkInfo = RetrofitInstance.api.getCompanyOverview(symbol = ticker, apiKey = apiKey)
+
+            // 3. UPDATE CACHE: On success, add a timestamp and save to the database.
+            networkInfo.lastFetched = System.currentTimeMillis()
+            watchlistDao.insertCompanyInfo(networkInfo)
+            return networkInfo
+
+            // NEW: Specifically catch the error caused by an empty API response.
+        } catch (e: JsonDataException) {
+            // Create a placeholder CompanyInfo object to show "N/A" in the UI.
+            // This object is NOT saved to the cache.
+            return CompanyInfo(
+                symbol = ticker,
+                name = ticker, // Use ticker as name for display
+                description = "No data available for this symbol.",
+                assetType = "N/A",
+                sector = "N/A",
+                industry = "N/A",
+                marketCap = "N/A",
+                peRatio = "N/A",
+                beta = "N/A",
+                dividendYield = "N/A",
+                profitMargin = "N/A",
+                week52High = "N/A",
+                week52Low = "N/A",
+                exchange = "N/A",
+                lastFetched = 0L
+            )
+
+        } catch (e: Exception) {
+            // 4. FALLBACK: On other network errors, if we have any stale data, serve that.
+            cachedInfo?.let { return it }
+            // If there's no cached data at all, re-throw the original exception.
+            throw e
+        }
     }
+
     fun getWatchlistWithStocks(id: Long): Flow<WatchlistWithStocks> {
         return watchlistDao.getWatchlistWithStocks(id)
     }
+
     suspend fun getQuoteForTicker(ticker: String): Result<TopMover> {
         return try {
             val response = RetrofitInstance.api.getQuote(symbol = ticker)
-            // Convert the API response into the TopMover format your UI uses
             val freshStock = TopMover(
                 ticker = response.globalQuote.symbol,
                 price = response.globalQuote.price,
                 changeAmount = response.globalQuote.change,
                 changePercentage = response.globalQuote.changePercent,
-                volume = "" // The quote endpoint doesn't provide volume
+                volume = ""
             )
             Result.success(freshStock)
         } catch (e: Exception) {
@@ -94,33 +183,27 @@ class Repository(val watchlistDao: WatchlistDao) {
     }
 
     suspend fun getTimeSeriesData(function: String, ticker: String): List<StockDataPoint> {
-        // Call the versatile getTimeSeries function in our API service.
         val response = RetrofitInstance.api.getTimeSeries(
             function = function,
             symbol = ticker,
-            // Only add the "interval" parameter if the function is INTRADAY.
             interval = if (function == "TIME_SERIES_INTRADAY") "5min" else null
         )
 
-        // The response object contains four possible data lists (intraday, daily, etc.).
-        // We need to find which one is not null and return it.
         val timeSeriesMap = when {
             response.intradayData != null -> response.intradayData
             response.dailyData != null -> response.dailyData
             response.weeklyData != null -> response.weeklyData
             response.monthlyData != null -> response.monthlyData
-            else -> emptyMap() // Return an empty map if all are null.
+            else -> emptyMap()
         }
-        // The API returns a map of dates to data points. We only need the data points.
-        // .values.toList() converts the map's values into a simple list.
         return timeSeriesMap.values.toList()
     }
+
     suspend fun searchTicker(query: String): List<SearchResult> {
-        // Call the ApiService and return the list of "bestMatches" from the response
         return RetrofitInstance.api.searchSymbol(keywords = query).bestMatches
     }
-
-
-
+    fun isStockInWatchlist(ticker: String): Flow<Boolean> {
+        return watchlistDao.isStockInWatchlist(ticker)
+    }
 
 }

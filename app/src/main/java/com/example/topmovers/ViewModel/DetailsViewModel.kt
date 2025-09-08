@@ -1,6 +1,5 @@
 package com.example.topmovers.ViewModel
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -31,7 +30,7 @@ class DetailsViewModel(private val repository: Repository) : ViewModel() {
         private set
     var isChartLoading by mutableStateOf(false)
         private set
-    var chartErrorMessage by mutableStateOf<String?>(null) // <-- ADD THIS LINE
+    var chartErrorMessage by mutableStateOf<String?>(null)
         private set
     var selectedTimeRange by mutableStateOf("1D")
         private set
@@ -41,7 +40,7 @@ class DetailsViewModel(private val repository: Repository) : ViewModel() {
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun isStockInWatchlist(ticker: String): StateFlow<Boolean> =
-        repository.watchlistDao.isStockInWatchlist(ticker)
+        repository.isStockInWatchlist(ticker) // This is the corrected line
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     fun addStockToWatchlist(stock: TopMover, watchlistId: Long) {
@@ -69,7 +68,7 @@ class DetailsViewModel(private val repository: Repository) : ViewModel() {
                 // Fetch 1D chart data by default when screen loads
                 fetchChartData(ticker, "1D")
             } catch (e: Exception) {
-                errorMessage = "Stock details not available."
+                errorMessage = "API is exhausted.Please change your IP."
             } finally {
                 isLoading = false
             }
@@ -79,7 +78,7 @@ class DetailsViewModel(private val repository: Repository) : ViewModel() {
     fun fetchChartData(ticker: String, range: String = "1D") {
         viewModelScope.launch {
             isChartLoading = true
-            chartErrorMessage = null // <-- ADD: Clear previous chart errors
+            chartErrorMessage = null
             selectedTimeRange = range
 
             val function = when (range) {
@@ -96,7 +95,7 @@ class DetailsViewModel(private val repository: Repository) : ViewModel() {
                 chartData = result.reversed()
 
             } catch (e: Exception) {
-                chartErrorMessage = "Could not load chart data" // <-- CHANGE
+                chartErrorMessage = "Data does not exist for this ticker."
                 chartData = emptyList()
             } finally {
                 isChartLoading = false

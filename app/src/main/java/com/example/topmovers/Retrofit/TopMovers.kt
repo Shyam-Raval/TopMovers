@@ -1,19 +1,20 @@
+// File: com/example/topmovers/Retrofit/TopMover.kt
+
 package com.example.topmovers.Retrofit
 
 import androidx.room.Entity
-import androidx.room.PrimaryKey
-import com.squareup.moshi.Json // Use Moshi's annotation
+import com.squareup.moshi.Json
 
-@Entity(tableName = "stocks")
+// MODIFICATION: Add cacheType and lastFetched, and define a composite primary key.
+@Entity(tableName = "stocks", primaryKeys = ["ticker", "cacheType"])
 data class TopMover(
-    @PrimaryKey
+    // The @PrimaryKey annotation is removed from here
     @Json(name = "ticker")
     val ticker: String,
 
     @Json(name = "price")
     val price: String,
 
-    // THE FIX IS HERE: Corrected the property name from changeAMount to changeAmount
     @Json(name = "change_amount")
     val changeAmount: String,
 
@@ -21,5 +22,11 @@ data class TopMover(
     val changePercentage: String,
 
     @Json(name = "volume")
-    val volume: String
+    val volume: String,
+
+    // NEW: A field to distinguish between "top_gainers", "top_losers", etc.
+    var cacheType: String = "",
+
+    // NEW: A timestamp to check for cache expiration.
+    var lastFetched: Long = 0L
 )
