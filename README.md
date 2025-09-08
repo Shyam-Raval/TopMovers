@@ -90,7 +90,10 @@ buildConfigField("String", "ALPHA_VANTAGE_API_KEY", "\"YOUR_API_KEY\"")
 Open the project in Android Studio, allow Gradle to sync, and then build and run the app on an emulator or a physical device. Enjoy exploring the market!
 
 ## ⚡ App Demo Screenshots 
-![WhatsApp Image 2025-09-08 at 23 04 45_b2ea6ea6](https://github.com/user-attachments/assets/8c1ed7ec-a4a9-4c6b-a8e4-c726ce68f570)
-![WhatsApp Image 2025-09-08 at 23 04 22_958cbd35](https://github.com/user-attachments/assets/a58e8964-d0ae-43db-869f-cbeee010cd99)
-![WhatsApp Image 2025-09-08 at 23 04 25_73f26ffb](https://github.com/user-attachments/assets/614e46ea-8e95-4e8d-aaee-f6b3fb1628d6)
+
+<img src="https://github.com/user-attachments/assets/8c1ed7ec-a4a9-4c6b-a8e4-c726ce68f570" alt="WhatsApp Image 2025-09-08 at 23 04 45_b2ea6ea6" width="400">
+
+<img src="https://github.com/user-attachments/assets/a58e8964-d0ae-43db-869f-cbeee010cd99" alt="WhatsApp Image 2025-09-08 at 23 04 22_958cbd35" width="400">
+
+<img src="https://github.com/user-attachments/assets/614e46ea-8e95-4e8d-aaee-f6b3fb1628d6" alt="WhatsApp Image 2025-09-08 at 23 04 25_73f26ffb" width="400">
 
