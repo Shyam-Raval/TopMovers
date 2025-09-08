@@ -1,37 +1,34 @@
-
 package com.example.topmovers.Retrofit
 
-import com.google.gson.annotations.SerializedName
+import com.squareup.moshi.Json // Use Moshi's annotation
 
 data class CompanyInfo(
-    @SerializedName("Symbol")
+    @Json(name = "Symbol")
     val symbol: String?,
-    @SerializedName("Name")
+    @Json(name = "Name")
     val name: String?,
-    @SerializedName("Description")
+    @Json(name = "Description")
     val description: String?,
-    // ADD THIS LINE
-    @SerializedName("AssetType")
+    @Json(name = "AssetType")
     val assetType: String?,
-    @SerializedName("Sector")
+    @Json(name = "Sector")
     val sector: String?,
-    @SerializedName("Industry")
+    @Json(name = "Industry")
     val industry: String?,
-    @SerializedName("MarketCapitalization")
+    @Json(name = "MarketCapitalization")
     val marketCap: String?,
-    @SerializedName("PERatio")
+    @Json(name = "PERatio")
     val peRatio: String?,
-    @SerializedName("Beta")
+    @Json(name = "Beta")
     val beta: String?,
-    @SerializedName("DividendYield")
+    @Json(name = "DividendYield")
     val dividendYield: String?,
-    @SerializedName("ProfitMargin")
+    @Json(name = "ProfitMargin")
     val profitMargin: String?,
-    @SerializedName("52WeekHigh")
+    @Json(name = "52WeekHigh")
     val week52High: String?,
-    @SerializedName("52WeekLow")
+    @Json(name = "52WeekLow")
     val week52Low: String?,
-    @SerializedName("Exchange")
-    val exchange: String?,
-
-    )
+    @Json(name = "Exchange")
+    val exchange: String?
+)

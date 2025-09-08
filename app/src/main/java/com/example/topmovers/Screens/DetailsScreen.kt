@@ -20,15 +20,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.Hyphens
 import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.topmovers.Repository.Repository
 import com.example.topmovers.Retrofit.CompanyInfo
 import com.example.topmovers.Retrofit.TopMover
 import com.example.topmovers.ViewModel.DetailsViewModel
 import com.example.topmovers.ViewModel.DetailsViewModelFactory
+import com.patrykandpatrick.vico.compose.axis.horizontal.rememberBottomAxis
+import com.patrykandpatrick.vico.compose.axis.vertical.rememberStartAxis
+import com.patrykandpatrick.vico.compose.chart.Chart
+import com.patrykandpatrick.vico.compose.chart.line.lineChart
+import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
+import com.patrykandpatrick.vico.core.entry.FloatEntry
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,7 +45,6 @@ fun DetailsScreen(
     changeAmount: String
 ) {
     val viewModel: DetailsViewModel = viewModel(factory = DetailsViewModelFactory(repository))
-
 
     LaunchedEffect(key1 = ticker) {
         viewModel.fetchStockDetails(ticker, "NTJBDU9U1JGKA613")
@@ -72,7 +75,6 @@ fun DetailsScreen(
         )
     }
 
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -85,7 +87,6 @@ fun DetailsScreen(
                 actions = {
                     IconButton(onClick = { showDialog1 = true}) {
                         Icon(
-                            // --- Icon changes based on whether the stock is saved ---
                             imageVector = if (isStockInWatchlist) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
                             contentDescription = "Add to Watchlist",
                             tint = if (isStockInWatchlist) MaterialTheme.colorScheme.primary else LocalContentColor.current
@@ -112,7 +113,9 @@ fun DetailsScreen(
                 companyInfo != null -> DetailsContentNew(
                     info = companyInfo,
                     currentPrice = price,
-                    changePercentage = changePercentage
+                    changePercentage = changePercentage,
+                    viewModel = viewModel, // Pass the viewModel
+                    ticker = ticker // Pass the ticker
                 )
             }
         }
@@ -123,7 +126,9 @@ fun DetailsScreen(
 private fun DetailsContentNew(
     info: CompanyInfo,
     currentPrice: String,
-    changePercentage: String
+    changePercentage: String,
+    viewModel: DetailsViewModel,
+    ticker: String
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -137,7 +142,9 @@ private fun DetailsContentNew(
                 changePercentage = changePercentage
             )
         }
-        item { StockChartSection() }
+        item {
+            StockChartSection(viewModel = viewModel, ticker = ticker)
+        }
         item { AboutSectionNew(info = info) }
         item {
             KeyStatsSectionNew(
@@ -186,37 +193,70 @@ private fun StockHeaderNew(
 }
 
 @Composable
-private fun StockChartSection() {
-    var selectedTimeRange by remember { mutableStateOf("1Y") }
-    val timeRanges = listOf("1D", "1W", "1M", "3M", "6M", "1Y")
+private fun StockChartSection(viewModel: DetailsViewModel, ticker: String) {
+    val isChartLoading = viewModel.isChartLoading
+    val chartData = viewModel.chartData
+    val selectedTimeRange = viewModel.selectedTimeRange
+
+    val chartEntryModelProducer = ChartEntryModelProducer(
+        chartData.mapIndexed { index, stockDataPoint ->
+            FloatEntry(x = index.toFloat(), y = stockDataPoint.close.toFloat())
+        }
+    )
+
+    val timeRanges = listOf("1D", "1W", "1M", "6M", "1Y")
 
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(200.dp)
-                .background(color = MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(12.dp)),
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    shape = RoundedCornerShape(12.dp)
+                ),
             contentAlignment = Alignment.Center
         ) {
-            Text("Line Chart Placeholder", color = Color.Gray)
+            if (isChartLoading) {
+                CircularProgressIndicator()
+            } else {
+                Chart(
+                    chart = lineChart(),
+                    chartModelProducer = chartEntryModelProducer,
+                    startAxis = rememberStartAxis(),
+                    bottomAxis = rememberBottomAxis(),
+                )
+            }
         }
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
             timeRanges.forEach { range ->
                 TextButton(
-                    onClick = { selectedTimeRange = range },
+                    onClick = { viewModel.fetchChartData(ticker, range) },
                     colors = ButtonDefaults.textButtonColors(
-                        contentColor = if (selectedTimeRange == range) MaterialTheme.colorScheme.primary else Color.Gray
+                        contentColor = if (selectedTimeRange == range) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            Color.Gray
+                        }
                     )
                 ) {
-                    Text(text = range, fontWeight = if (selectedTimeRange == range) FontWeight.Bold else FontWeight.Normal)
+                    Text(
+                        text = range,
+                        fontWeight = if (selectedTimeRange == range) {
+                            FontWeight.Bold
+                        } else {
+                            FontWeight.Normal
+                        }
+                    )
                 }
             }
         }
     }
 }
-
-// in DetailsScreen.kt
-// Make sure you have these two imports at the top of your file
 
 @Composable
 private fun AboutSectionNew(info: CompanyInfo) {
@@ -228,13 +268,11 @@ private fun AboutSectionNew(info: CompanyInfo) {
         )
         Text(
             text = info.description ?: "No description available.",
-            // We are adding one more property to the style
             style = MaterialTheme.typography.bodyMedium.copy(
                 lineBreak = LineBreak.Paragraph,
-                hyphens = Hyphens.Auto // CHANGED: Add this line to enable hyphenation
+                hyphens = Hyphens.Auto
             )
         )
-
         Column(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
@@ -243,6 +281,7 @@ private fun AboutSectionNew(info: CompanyInfo) {
         }
     }
 }
+
 @Composable
 private fun KeyStatsSectionNew(info: CompanyInfo, currentPrice: String) {
     Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
@@ -319,7 +358,6 @@ private fun Tag(text: String) {
         shape = RoundedCornerShape(8.dp),
         color = MaterialTheme.colorScheme.secondaryContainer,
     ) {
-        // CHANGED: Removed maxLines and overflow to allow text to wrap if needed.
         Text(
             text = text,
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),

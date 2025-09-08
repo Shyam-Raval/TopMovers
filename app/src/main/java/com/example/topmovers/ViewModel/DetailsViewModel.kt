@@ -1,5 +1,6 @@
 package com.example.topmovers.ViewModel
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -7,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.topmovers.Repository.Repository
 import com.example.topmovers.Retrofit.CompanyInfo
+import com.example.topmovers.Retrofit.StockDataPoint
 import com.example.topmovers.Retrofit.TopMover
 import com.example.topmovers.Room.WatchList
 import kotlinx.coroutines.flow.SharingStarted
@@ -16,7 +18,7 @@ import kotlinx.coroutines.launch
 
 class DetailsViewModel(private val repository: Repository) : ViewModel() {
 
-    // --- State for Stock Details (This part is the same) ---
+    // --- State for Stock Details ---
     var companyInfo by mutableStateOf<CompanyInfo?>(null)
         private set
     var isLoading by mutableStateOf(false)
@@ -24,54 +26,78 @@ class DetailsViewModel(private val repository: Repository) : ViewModel() {
     var errorMessage by mutableStateOf<String?>(null)
         private set
 
-    // --- NEW: State and Actions for Watchlists ---
+    // --- State for the Chart ---
+    var chartData by mutableStateOf<List<StockDataPoint>>(emptyList())
+        private set
+    var isChartLoading by mutableStateOf(false)
+        private set
+    var selectedTimeRange by mutableStateOf("1D") // Default is now 1 Day
+        private set
 
-    /**
-     * A live stream of all existing watchlists. The popup dialog will use this.
-     */
+    // --- State and Actions for Watchlists ---
     val allWatchlists: StateFlow<List<WatchList>> = repository.allWatchlists
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    /**
-     * A live stream that tells us if the current stock is in ANY watchlist.
-     * This will be used to change the bookmark icon from empty to filled.
-     */
     fun isStockInWatchlist(ticker: String): StateFlow<Boolean> =
         repository.watchlistDao.isStockInWatchlist(ticker)
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
-    /**
-     * Action to add the current stock to an existing watchlist.
-     */
     fun addStockToWatchlist(stock: TopMover, watchlistId: Long) {
         viewModelScope.launch {
             repository.addStockToWatchlist(stock, watchlistId)
         }
     }
 
-    /**
-     * Action to create a new watchlist and add the current stock to it.
-     */
     fun createNewWatchlistAndAddStock(name: String, stock: TopMover) {
         viewModelScope.launch {
             val newId = repository.addWatchlist(name)
-            if (newId != -1L) { // Room returns -1 on failure
+            if (newId != -1L) {
                 repository.addStockToWatchlist(stock, newId)
             }
         }
     }
 
-    // --- Data Fetching (This part is the same) ---
+    // --- Data Fetching Functions ---
     fun fetchStockDetails(ticker: String, apiKey: String) {
         viewModelScope.launch {
             isLoading = true
             errorMessage = null
             try {
                 companyInfo = repository.getCompanyOverview(ticker, apiKey)
+                // Fetch 1D chart data by default when screen loads
+                fetchChartData(ticker, "1D")
             } catch (e: Exception) {
                 errorMessage = "Failed to load stock details: ${e.message}"
             } finally {
                 isLoading = false
+            }
+        }
+    }
+
+    fun fetchChartData(ticker: String, range: String = "1D") {
+        viewModelScope.launch {
+            isChartLoading = true
+            selectedTimeRange = range
+
+            val function = when (range) {
+                "1D" -> "TIME_SERIES_INTRADAY"
+                "1W" -> "TIME_SERIES_WEEKLY"
+                "1M" -> "TIME_SERIES_MONTHLY"
+                "6M" -> "TIME_SERIES_MONTHLY"
+                "1Y" -> "TIME_SERIES_MONTHLY"
+                else -> "TIME_SERIES_DAILY" // Fallback, though not used by our UI
+            }
+
+            try {
+                val result = repository.getTimeSeriesData(function, ticker)
+                chartData = result.reversed()
+                Log.d("ChartDataDebug", "API returned: $result")
+
+            } catch (e: Exception) {
+                errorMessage = "Could not load chart data: ${e.message}"
+                chartData = emptyList()
+            } finally {
+                isChartLoading = false
             }
         }
     }

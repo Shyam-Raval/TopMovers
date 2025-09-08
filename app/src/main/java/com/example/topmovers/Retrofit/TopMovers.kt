@@ -2,23 +2,24 @@ package com.example.topmovers.Retrofit
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.google.gson.annotations.SerializedName
+import com.squareup.moshi.Json // Use Moshi's annotation
 
 @Entity(tableName = "stocks")
 data class TopMover(
     @PrimaryKey
-    @SerializedName("ticker")
+    @Json(name = "ticker")
     val ticker: String,
 
-    @SerializedName("price")
+    @Json(name = "price")
     val price: String,
 
-    @SerializedName("change_amount")
+    // THE FIX IS HERE: Corrected the property name from changeAMount to changeAmount
+    @Json(name = "change_amount")
     val changeAmount: String,
 
-    @SerializedName("change_percentage")
+    @Json(name = "change_percentage")
     val changePercentage: String,
 
-    @SerializedName("volume")
+    @Json(name = "volume")
     val volume: String
 )

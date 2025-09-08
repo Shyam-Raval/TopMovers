@@ -1,26 +1,19 @@
 package com.example.topmovers.Retrofit
 
- // Or your appropriate package
+import com.squareup.moshi.Json // Use Moshi's annotation
 
-import com.google.gson.annotations.SerializedName
-
-// This class matches the outer "Global Quote" object in the JSON
 data class GlobalQuoteResponse(
-    @SerializedName("Global Quote")
+    @Json(name = "Global Quote")
     val globalQuote: GlobalQuote
 )
 
-// This class matches the fields inside the "Global Quote" object
 data class GlobalQuote(
-    @SerializedName("01. symbol")
+    @Json(name = "01. symbol")
     val symbol: String,
-
-    @SerializedName("05. price")
+    @Json(name = "05. price")
     val price: String,
-
-    @SerializedName("09. change")
+    @Json(name = "09. change")
     val change: String,
-
-    @SerializedName("10. change percent")
+    @Json(name = "10. change percent")
     val changePercent: String
 )

@@ -3,6 +3,7 @@ package com.example.topmovers.Repository
 
 import com.example.topmovers.Retrofit.CompanyInfo
 import com.example.topmovers.Retrofit.RetrofitInstance
+import com.example.topmovers.Retrofit.StockDataPoint
 import com.example.topmovers.Retrofit.TopMover
 import com.example.topmovers.Retrofit.TopMoversResponse
 import com.example.topmovers.Room.WatchList
@@ -90,6 +91,30 @@ class Repository(val watchlistDao: WatchlistDao) {
             Result.failure(e)
         }
     }
+
+    suspend fun getTimeSeriesData(function: String, ticker: String): List<StockDataPoint> {
+        // Call the versatile getTimeSeries function in our API service.
+        val response = RetrofitInstance.api.getTimeSeries(
+            function = function,
+            symbol = ticker,
+            // Only add the "interval" parameter if the function is INTRADAY.
+            interval = if (function == "TIME_SERIES_INTRADAY") "5min" else null
+        )
+
+        // The response object contains four possible data lists (intraday, daily, etc.).
+        // We need to find which one is not null and return it.
+        val timeSeriesMap = when {
+            response.intradayData != null -> response.intradayData
+            response.dailyData != null -> response.dailyData
+            response.weeklyData != null -> response.weeklyData
+            response.monthlyData != null -> response.monthlyData
+            else -> emptyMap() // Return an empty map if all are null.
+        }
+        // The API returns a map of dates to data points. We only need the data points.
+        // .values.toList() converts the map's values into a simple list.
+        return timeSeriesMap.values.toList()
+    }
+
 
 
 }

@@ -62,6 +62,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.firebase.appdistribution.gradle)
+    implementation(libs.androidx.media3.common.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -74,6 +75,9 @@ dependencies {
 ////    implementation(libs.coil.network.okhttp)
 //    implementation("io.coil-kt.coil3:coil-compose:3.1.0")
 //    implementation("io.coil-kt.coil3:coil-network-okhttp:3.1.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0")
+    implementation("com.squareup.moshi:moshi-kotlin:1.15.0")
+
     val nav_version = "2.8.9"
     implementation("androidx.navigation:navigation-compose:$nav_version")
 //    //Firebase
@@ -98,6 +102,10 @@ dependencies {
     implementation(libs.converter.gson)
     implementation(libs.converter.gson.v290)
     implementation("androidx.compose.material:material-icons-extended-android:1.6.7")
+    implementation("com.patrykandpatrick.vico:compose:1.14.0")
+    implementation("com.patrykandpatrick.vico:core:1.14.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+    implementation("com.squareup.retrofit2:converter-moshi:2.9.0")
 
 
 

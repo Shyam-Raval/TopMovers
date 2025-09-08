@@ -25,4 +25,13 @@ interface ApiService {
       @Query("apikey") apiKey: String = "NTJBDU9U1JGKA613"
    ): GlobalQuoteResponse
 
+   // Add this function to your ApiService interface
+   @GET("query")
+   suspend fun getTimeSeries(
+      @Query("function") function: String,
+      @Query("symbol") symbol: String,
+      @Query("interval") interval: String? = null, // Only needed for Intraday
+      @Query("apikey") apiKey: String = "NTJBDU9U1JGKA613" // Your existing key
+   ): TimeSeriesResponse // It returns the new data class we just created
+
 }

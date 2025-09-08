@@ -1,25 +1,24 @@
 package com.example.topmovers.Retrofit
 
-import com.google.gson.annotations.SerializedName
-
+import com.squareup.moshi.Json // Use Moshi's annotation
 
 data class TopMoversResponse(
-        // ADD THIS FIELD for the rate limit message
-        @SerializedName("Information")
+        @Json(name = "Information")
         val information: String?,
 
-        @SerializedName("metadata")
+        @Json(name = "metadata")
         val metadata: String,
 
-        @SerializedName("last_updated")
+        // THE FIX IS HERE: "last_updated" now correctly maps to the "lastUpdated" property
+        @Json(name = "last_updated")
         val lastUpdated: String,
 
-        @SerializedName("top_gainers")
+        @Json(name = "top_gainers")
         val topGainers: List<TopMover>,
 
-        @SerializedName("top_losers")
+        @Json(name = "top_losers")
         val topLosers: List<TopMover>,
 
-        @SerializedName("most_actively_traded")
+        @Json(name = "most_actively_traded")
         val mostActivelyTraded: List<TopMover>
-    )
+)
