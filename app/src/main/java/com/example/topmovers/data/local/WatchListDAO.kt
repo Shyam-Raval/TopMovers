@@ -1,10 +1,11 @@
 // File: com/example/topmovers/Room/WatchlistDao.kt
 
-package com.example.topmovers.Room
+package com.example.topmovers.data.local
 
 import androidx.room.*
-import com.example.topmovers.Retrofit.CompanyInfo // NEW: Import CompanyInfo
-import com.example.topmovers.Retrofit.TopMover
+import com.example.topmovers.data.model.CompanyInfo // NEW: Import CompanyInfo
+import com.example.topmovers.data.model.TopMover
+import com.example.topmovers.data.model.WatchList
 import kotlinx.coroutines.flow.Flow
 
 @Dao

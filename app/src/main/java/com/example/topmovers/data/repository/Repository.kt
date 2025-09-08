@@ -1,15 +1,15 @@
-package com.example.topmovers.Repository
+package com.example.topmovers.data.repository
 
-import com.example.topmovers.Retrofit.CompanyInfo
-import com.example.topmovers.Retrofit.RetrofitInstance
-import com.example.topmovers.Retrofit.SearchResult
-import com.example.topmovers.Retrofit.StockDataPoint
-import com.example.topmovers.Retrofit.TopMover
-import com.example.topmovers.Retrofit.TopMoversResponse
-import com.example.topmovers.Room.WatchList
-import com.example.topmovers.Room.WatchlistDao
-import com.example.topmovers.Room.WatchlistStockCrossRef
-import com.example.topmovers.Room.WatchlistWithStocks
+import com.example.topmovers.data.model.CompanyInfo
+import com.example.topmovers.data.remote.RetrofitInstance
+import com.example.topmovers.data.model.SearchResult
+import com.example.topmovers.data.model.StockDataPoint
+import com.example.topmovers.data.model.TopMover
+import com.example.topmovers.data.model.TopMoversResponse
+import com.example.topmovers.data.model.WatchList
+import com.example.topmovers.data.local.WatchlistDao
+import com.example.topmovers.data.local.WatchlistStockCrossRef
+import com.example.topmovers.data.local.WatchlistWithStocks
 import kotlinx.coroutines.flow.Flow
 import java.io.IOException
 import java.util.concurrent.TimeUnit
@@ -166,9 +166,9 @@ class Repository(private val watchlistDao: WatchlistDao) {
         return watchlistDao.getWatchlistWithStocks(id)
     }
 
-    suspend fun getQuoteForTicker(ticker: String): Result<TopMover> {
+    suspend fun getQuoteForTicker(ticker: String, apiKey: String): Result<TopMover> {
         return try {
-            val response = RetrofitInstance.api.getQuote(symbol = ticker)
+            val response = RetrofitInstance.api.getQuote(symbol = ticker, apiKey = apiKey)
             val freshStock = TopMover(
                 ticker = response.globalQuote.symbol,
                 price = response.globalQuote.price,
@@ -182,11 +182,12 @@ class Repository(private val watchlistDao: WatchlistDao) {
         }
     }
 
-    suspend fun getTimeSeriesData(function: String, ticker: String): List<StockDataPoint> {
+    suspend fun getTimeSeriesData(function: String, ticker: String, apiKey: String): List<StockDataPoint> {
         val response = RetrofitInstance.api.getTimeSeries(
             function = function,
             symbol = ticker,
-            interval = if (function == "TIME_SERIES_INTRADAY") "5min" else null
+            interval = if (function == "TIME_SERIES_INTRADAY") "5min" else null,
+            apiKey = apiKey
         )
 
         val timeSeriesMap = when {
@@ -199,8 +200,8 @@ class Repository(private val watchlistDao: WatchlistDao) {
         return timeSeriesMap.values.toList()
     }
 
-    suspend fun searchTicker(query: String): List<SearchResult> {
-        return RetrofitInstance.api.searchSymbol(keywords = query).bestMatches
+    suspend fun searchTicker(query: String, apiKey: String): List<SearchResult> {
+        return RetrofitInstance.api.searchSymbol(keywords = query, apiKey = apiKey).bestMatches
     }
     fun isStockInWatchlist(ticker: String): Flow<Boolean> {
         return watchlistDao.isStockInWatchlist(ticker)

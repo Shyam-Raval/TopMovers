@@ -2,8 +2,8 @@ package com.example.topmovers.ViewModel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.topmovers.Repository.Repository
-import com.example.topmovers.Retrofit.TopMover
+import com.example.topmovers.data.repository.Repository
+import com.example.topmovers.data.model.TopMover
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import com.example.topmovers.BuildConfig // ADDED: Import BuildConfig
 
 // A data class to represent all possible states of your screen
 data class WatchlistUiState(
@@ -50,7 +51,7 @@ class WatchlistDetailViewModel(
             try {
                 coroutineScope {
                     val freshStocks = tickers.map { ticker ->
-                        async { repository.getQuoteForTicker(ticker) }
+                        async { repository.getQuoteForTicker(ticker, BuildConfig.ALPHA_VANTAGE_API_KEY) }
                     }.mapNotNull { it.await().getOrNull() }
 
                     _uiState.value = WatchlistUiState(watchlistName = watchlistName, stocks = freshStocks)

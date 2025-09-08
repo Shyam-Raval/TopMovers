@@ -1,6 +1,6 @@
 // File: com/example/topmovers/Retrofit/TopMover.kt
 
-package com.example.topmovers.Retrofit
+package com.example.topmovers.data.model
 
 import androidx.room.Entity
 import com.squareup.moshi.Json

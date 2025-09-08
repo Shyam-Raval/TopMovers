@@ -1,4 +1,4 @@
-package com.example.topmovers.Retrofit
+package com.example.topmovers.data.model
 
 
 import com.squareup.moshi.Json

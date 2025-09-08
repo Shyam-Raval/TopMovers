@@ -1,4 +1,4 @@
-package com.example.topmovers.Screens
+package com.example.topmovers.ui.Screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.*

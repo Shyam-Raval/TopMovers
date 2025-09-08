@@ -1,4 +1,4 @@
-package com.example.topmovers.Room
+package com.example.topmovers.data.model
 
 
 import androidx.room.Entity

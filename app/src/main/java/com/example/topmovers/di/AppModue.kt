@@ -3,9 +3,9 @@
 package com.example.topmovers.di
 
 import androidx.room.Room
-import com.example.topmovers.Repository.Repository
-import com.example.topmovers.Room.AppDatabase
-import com.example.topmovers.Room.AppDatabase.Companion.MIGRATION_1_2 // NEW: Import migration
+import com.example.topmovers.data.repository.Repository
+import com.example.topmovers.data.local.AppDatabase
+import com.example.topmovers.data.local.AppDatabase.Companion.MIGRATION_1_2 // NEW: Import migration
 import com.example.topmovers.ViewModel.DetailsViewModel
 import com.example.topmovers.ViewModel.TopMoversViewModel
 import com.example.topmovers.ViewModel.WatchlistDetailViewModel

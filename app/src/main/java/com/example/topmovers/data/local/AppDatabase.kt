@@ -1,13 +1,14 @@
 // File: com/example/topmovers/Room/AppDatabase.kt
 
-package com.example.topmovers.Room
+package com.example.topmovers.data.local
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.example.topmovers.Retrofit.CompanyInfo
-import com.example.topmovers.Retrofit.TopMover
+import com.example.topmovers.data.model.CompanyInfo
+import com.example.topmovers.data.model.TopMover
+import com.example.topmovers.data.model.WatchList
 
 @Database(
     entities = [

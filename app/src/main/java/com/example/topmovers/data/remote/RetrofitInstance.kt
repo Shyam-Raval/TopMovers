@@ -1,4 +1,4 @@
-package com.example.topmovers.Retrofit
+package com.example.topmovers.data.remote
 
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory

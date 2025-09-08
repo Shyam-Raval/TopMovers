@@ -1,4 +1,4 @@
-package com.example.topmovers.Screens
+package com.example.topmovers.ui.Screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -8,7 +8,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Business
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -21,8 +20,8 @@ import androidx.compose.ui.text.style.Hyphens
 import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.example.topmovers.Retrofit.CompanyInfo
-import com.example.topmovers.Retrofit.TopMover
+import com.example.topmovers.data.model.CompanyInfo
+import com.example.topmovers.data.model.TopMover
 import com.example.topmovers.ViewModel.DetailsViewModel
 import com.patrykandpatrick.vico.compose.axis.horizontal.rememberBottomAxis
 import com.patrykandpatrick.vico.compose.axis.vertical.rememberStartAxis
@@ -31,6 +30,7 @@ import com.patrykandpatrick.vico.compose.chart.line.lineChart
 import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
 import com.patrykandpatrick.vico.core.entry.FloatEntry
 import org.koin.androidx.compose.koinViewModel
+import com.example.topmovers.BuildConfig // ADDED: Import BuildConfig
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,7 +45,7 @@ fun DetailsScreen(
     val viewModel: DetailsViewModel = koinViewModel()
 
     LaunchedEffect(key1 = ticker) {
-        viewModel.fetchStockDetails(ticker, "NTJBDU9U1JGKA613")
+        viewModel.fetchStockDetails(ticker, BuildConfig.ALPHA_VANTAGE_API_KEY)
     }
 
     val companyInfo = viewModel.companyInfo
@@ -82,12 +82,22 @@ fun DetailsScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
+                // MODIFIED: Set the colors for the TopAppBar
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary, // Green background
+                    titleContentColor = Color.White,                   // White title
+                    navigationIconContentColor = Color.White,          // White back arrow
+                    actionIconContentColor = Color.White               // White bookmark icon
+                ),
                 actions = {
                     IconButton(onClick = { showDialog1 = true}) {
                         Icon(
                             imageVector = Icons.Default.Bookmark ,
                             contentDescription = "Add to Watchlist",
-                            tint = if (isStockInWatchlist) MaterialTheme.colorScheme.primary else LocalContentColor.current
+                            // The tint is now always white due to actionIconContentColor
+                            // but you could re-introduce logic if you want a *different* color when active
+                            // For now, it will be white like the other action icons.
+                            tint = if (isStockInWatchlist) Color.Yellow else Color.White // Example: Yellow when active, white otherwise
                         )
                     }
                 }
@@ -249,7 +259,7 @@ private fun StockChartSection(viewModel: DetailsViewModel, ticker: String) {
         ) {
             timeRanges.forEach { range ->
                 TextButton(
-                    onClick = { viewModel.fetchChartData(ticker, range) },
+                    onClick = { viewModel.fetchChartData(ticker, range, BuildConfig.ALPHA_VANTAGE_API_KEY) },
                     colors = ButtonDefaults.textButtonColors(
                         contentColor = if (selectedTimeRange == range) {
                             MaterialTheme.colorScheme.primary
@@ -319,9 +329,9 @@ private fun PriceRangeIndicator(low: Double, high: Double, current: Double) {
 
             Divider(modifier = Modifier.align(Alignment.CenterStart), thickness = 4.dp, color = MaterialTheme.colorScheme.surfaceVariant)
             Column(modifier = Modifier.offset(x = offset - 6.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(text = "Current price: $$current", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(2.dp))
                 Box(modifier = Modifier.size(12.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primary))
+                Spacer(Modifier.height(2.dp))
+                Text(text = "Current price: $$current", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
             }
         }
         Spacer(Modifier.height(4.dp))

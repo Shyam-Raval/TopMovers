@@ -28,6 +28,9 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // ADDED: Define your API key here
+        buildConfigField("String", "ALPHA_VANTAGE_API_KEY", "\"NTJBDU9U1JGKA613\"")
     }
 
     buildTypes {
@@ -48,6 +51,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -99,7 +103,6 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.1")
 
     implementation(libs.converter.gson)
-    implementation(libs.converter.gson)
     implementation(libs.converter.gson.v290)
     implementation("androidx.compose.material:material-icons-extended-android:1.6.7")
     implementation("com.patrykandpatrick.vico:compose:1.14.0")
@@ -111,8 +114,5 @@ dependencies {
 
 // Koin for Jetpack Compose
     implementation("io.insert-koin:koin-androidx-compose:3.5.6")
-
-
-
 
 }

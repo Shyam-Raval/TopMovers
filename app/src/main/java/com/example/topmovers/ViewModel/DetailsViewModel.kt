@@ -5,11 +5,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.topmovers.Repository.Repository
-import com.example.topmovers.Retrofit.CompanyInfo
-import com.example.topmovers.Retrofit.StockDataPoint
-import com.example.topmovers.Retrofit.TopMover
-import com.example.topmovers.Room.WatchList
+import com.example.topmovers.data.repository.Repository
+import com.example.topmovers.data.model.CompanyInfo
+import com.example.topmovers.data.model.StockDataPoint
+import com.example.topmovers.data.model.TopMover
+import com.example.topmovers.data.model.WatchList
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -40,7 +40,7 @@ class DetailsViewModel(private val repository: Repository) : ViewModel() {
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun isStockInWatchlist(ticker: String): StateFlow<Boolean> =
-        repository.isStockInWatchlist(ticker) // This is the corrected line
+        repository.isStockInWatchlist(ticker)
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     fun addStockToWatchlist(stock: TopMover, watchlistId: Long) {
@@ -64,9 +64,10 @@ class DetailsViewModel(private val repository: Repository) : ViewModel() {
             isLoading = true
             errorMessage = null
             try {
+                // Pass the API key to the repository
                 companyInfo = repository.getCompanyOverview(ticker, apiKey)
                 // Fetch 1D chart data by default when screen loads
-                fetchChartData(ticker, "1D")
+                fetchChartData(ticker, "1D", apiKey)
             } catch (e: Exception) {
                 errorMessage = "API is exhausted.Please change your IP."
             } finally {
@@ -75,7 +76,7 @@ class DetailsViewModel(private val repository: Repository) : ViewModel() {
         }
     }
 
-    fun fetchChartData(ticker: String, range: String = "1D") {
+    fun fetchChartData(ticker: String, range: String = "1D", apiKey: String) {
         viewModelScope.launch {
             isChartLoading = true
             chartErrorMessage = null
@@ -91,7 +92,8 @@ class DetailsViewModel(private val repository: Repository) : ViewModel() {
             }
 
             try {
-                val result = repository.getTimeSeriesData(function, ticker)
+                // Pass the API key from BuildConfig
+                val result = repository.getTimeSeriesData(function, ticker, apiKey)
                 chartData = result.reversed()
 
             } catch (e: Exception) {

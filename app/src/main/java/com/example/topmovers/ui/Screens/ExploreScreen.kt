@@ -1,4 +1,4 @@
-package com.example.topmovers.Screens
+package com.example.topmovers.ui.Screens
 
 
 import androidx.compose.foundation.background
@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.DarkMode
@@ -41,20 +42,22 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.example.topmovers.Retrofit.SearchResult
-import com.example.topmovers.Retrofit.TopMover
+import com.example.topmovers.data.model.SearchResult
+import com.example.topmovers.data.model.TopMover
 import com.example.topmovers.ViewModel.TopMoversViewModel
 import com.example.topmovers.navigation.Screens
 import com.example.topmovers.ui.components.TopMoverItem
@@ -77,15 +80,27 @@ fun ExploreScreen(
     val searchResults = viewModel.searchResults
     val isSearching = viewModel.isSearching
 
+    var isSearchActive by rememberSaveable { mutableStateOf(false) }
+
     Scaffold(
         topBar = {
-            StocksTopAppBar(
-                searchText = searchQuery,
-                onSearchChanged = { viewModel.onSearchQueryChanged(it) },
-                onClearSearch = { viewModel.clearSearch() },
-                useDarkTheme = useDarkTheme,
-                onThemeToggle = onThemeToggle
-            )
+            if (isSearchActive) {
+                SearchTopAppBar(
+                    searchText = searchQuery,
+                    onSearchChanged = { viewModel.onSearchQueryChanged(it) },
+                    onClearSearch = { viewModel.clearSearch() },
+                    onCloseSearch = {
+                        isSearchActive = false
+                        viewModel.clearSearch()
+                    }
+                )
+            } else {
+                GreetingTopAppBar(
+                    onSearchClick = { isSearchActive = true },
+                    useDarkTheme = useDarkTheme,
+                    onThemeToggle = onThemeToggle
+                )
+            }
         },
         bottomBar = { StocksBottomNav(navController = navController) }
     ) { innerPadding ->
@@ -134,23 +149,21 @@ fun TopMoversContent(
     onNavigateToTopGainers: () -> Unit,
     onNavigateToTopLosers: () -> Unit
 ) {
+    // Define colors for the "View All" text
+    val viewAllGreen = Color(0xFF16A782)
+    val viewAllRed = Color(0xFFD50000)
+
     Box(modifier = Modifier.fillMaxSize()) {
         when {
-            isLoading -> {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-            }
-
-            errorMessage != null -> {
-                Text(
-                    text = errorMessage,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .padding(16.dp),
-                    textAlign = TextAlign.Center
-                )
-            }
-
+            isLoading -> CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            errorMessage != null -> Text(
+                text = errorMessage,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .padding(16.dp),
+                textAlign = TextAlign.Center
+            )
             else -> {
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
@@ -163,19 +176,25 @@ fun TopMoversContent(
                         item(span = { GridItemSpan(maxLineSpan) }) {
                             SectionHeader(
                                 title = "Top Gainers",
-                                onViewAllClicked = onNavigateToTopGainers
+                                onViewAllClicked = onNavigateToTopGainers,
+                                actionTextColor = viewAllGreen // Pass green color
                             )
                         }
                         items(topGainers.take(4)) { mover ->
-                            TopMoverItem(mover = mover) {
-                                navController.navigate(
-                                    Screens.StockDetails.createRoute(
-                                        ticker = mover.ticker,
-                                        price = mover.price,
-                                        changePercentage = mover.changePercentage,
-                                        changeAmount = mover.changeAmount
+                            Box(
+                                modifier = Modifier
+                                    .clip(MaterialTheme.shapes.medium)
+                            ) {
+                                TopMoverItem(mover = mover) {
+                                    navController.navigate(
+                                        Screens.StockDetails.createRoute(
+                                            ticker = mover.ticker,
+                                            price = mover.price,
+                                            changePercentage = mover.changePercentage,
+                                            changeAmount = mover.changeAmount
+                                        )
                                     )
-                                )
+                                }
                             }
                         }
                     }
@@ -183,19 +202,25 @@ fun TopMoversContent(
                         item(span = { GridItemSpan(maxLineSpan) }) {
                             SectionHeader(
                                 title = "Top Losers",
-                                onViewAllClicked = onNavigateToTopLosers
+                                onViewAllClicked = onNavigateToTopLosers,
+                                actionTextColor = viewAllRed // Pass red color
                             )
                         }
                         items(topLosers.take(4)) { mover ->
-                            TopMoverItem(mover = mover) {
-                                navController.navigate(
-                                    Screens.StockDetails.createRoute(
-                                        ticker = mover.ticker,
-                                        price = mover.price,
-                                        changePercentage = mover.changePercentage,
-                                        changeAmount = mover.changeAmount
+                            Box(
+                                modifier = Modifier
+                                    .clip(MaterialTheme.shapes.medium)
+                            ) {
+                                TopMoverItem(mover = mover) {
+                                    navController.navigate(
+                                        Screens.StockDetails.createRoute(
+                                            ticker = mover.ticker,
+                                            price = mover.price,
+                                            changePercentage = mover.changePercentage,
+                                            changeAmount = mover.changeAmount
+                                        )
                                     )
-                                )
+                                }
                             }
                         }
                     }
@@ -205,70 +230,98 @@ fun TopMoversContent(
     }
 }
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StocksTopAppBar(
-    searchText: String,
-    onSearchChanged: (String) -> Unit,
-    onClearSearch: () -> Unit,
+fun GreetingTopAppBar(
+    onSearchClick: () -> Unit,
     useDarkTheme: Boolean,
     onThemeToggle: () -> Unit
 ) {
+    val primaryGreen = Color(0xFF16A782)
+
     TopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
+            containerColor = primaryGreen,
+            titleContentColor = Color.White,
+            actionIconContentColor = Color.White
         ),
         title = {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = "TopMovers",
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    fontFamily = FontFamily.SansSerif,
-                    fontSize = 22.sp,
-                    modifier = Modifier.weight(1f)
-                )
-
-                TextField(
-                    value = searchText,
-                    onValueChange = onSearchChanged,
-                    placeholder = { Text("Search...", fontSize = 15.sp) },
-                    trailingIcon = {
-                        if (searchText.isNotBlank()) {
-                            IconButton(onClick = onClearSearch) {
-                                Icon(Icons.Default.Clear, contentDescription = "Clear Search")
-                            }
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth(0.7f),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        focusedIndicatorColor = Color.Transparent,
-                        disabledContainerColor = Color.Transparent,
-                        cursorColor = MaterialTheme.colorScheme.onSurface,
-                        focusedLeadingIconColor = Color.DarkGray,
-                        unfocusedLeadingIconColor = Color.DarkGray,
-                        unfocusedPlaceholderColor = Color.Gray,
-                        focusedPlaceholderColor = Color.Gray
-                    ),
-                    singleLine = true
-                )
-            }
+            Text(
+                text = "TopMovers",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
         },
         actions = {
+            IconButton(onClick = onSearchClick) {
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = "Search Stocks"
+                )
+            }
             IconButton(onClick = onThemeToggle) {
                 Icon(
                     imageVector = if (useDarkTheme) Icons.Default.LightMode else Icons.Default.DarkMode,
                     contentDescription = "Toggle Theme"
                 )
+            }
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SearchTopAppBar(
+    searchText: String,
+    onSearchChanged: (String) -> Unit,
+    onClearSearch: () -> Unit,
+    onCloseSearch: () -> Unit
+) {
+    val primaryGreen = Color(0xFF16A782)
+
+    TopAppBar(
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = primaryGreen,
+            navigationIconContentColor = Color.White,
+            actionIconContentColor = Color.White
+        ),
+        navigationIcon = {
+            IconButton(onClick = onCloseSearch) {
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    contentDescription = "Close Search"
+                )
+            }
+        },
+        title = {
+            TextField(
+                value = searchText,
+                onValueChange = onSearchChanged,
+                placeholder = { Text("Search stocks...") },
+                modifier = Modifier.fillMaxWidth(),
+                colors = TextFieldDefaults.colors(
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                    cursorColor = Color.White,
+                    focusedPlaceholderColor = Color.White.copy(alpha = 0.7f),
+                    unfocusedPlaceholderColor = Color.White.copy(alpha = 0.7f),
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    disabledContainerColor = Color.Transparent
+                ),
+                singleLine = true
+            )
+        },
+        actions = {
+            if (searchText.isNotBlank()) {
+                IconButton(onClick = onClearSearch) {
+                    Icon(
+                        imageVector = Icons.Default.Clear,
+                        contentDescription = "Clear Search"
+                    )
+                }
             }
         }
     )
@@ -318,7 +371,8 @@ fun StocksBottomNav(navController: NavHostController) {
 @Composable
 fun SectionHeader(
     title: String,
-    onViewAllClicked: () -> Unit
+    onViewAllClicked: () -> Unit,
+    actionTextColor: Color = MaterialTheme.colorScheme.primary // Default color
 ) {
     Row(
         modifier = Modifier
@@ -333,7 +387,10 @@ fun SectionHeader(
             fontWeight = FontWeight.Bold
         )
         TextButton(onClick = onViewAllClicked) {
-            Text(text = "View All")
+            Text(
+                text = "View All",
+                color = actionTextColor // Use the passed-in color
+            )
         }
     }
 }

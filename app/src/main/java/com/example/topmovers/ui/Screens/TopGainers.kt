@@ -1,4 +1,4 @@
-package com.example.topmovers.Screens
+package com.example.topmovers.ui.Screens
 
 
 import androidx.compose.foundation.layout.Arrangement
@@ -21,7 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.example.topmovers.Retrofit.TopMover
+import com.example.topmovers.data.model.TopMover
 import com.example.topmovers.navigation.Screens
 import com.example.topmovers.ui.components.TopMoverItem
 

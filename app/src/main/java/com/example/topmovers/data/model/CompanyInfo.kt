@@ -1,6 +1,6 @@
 // File: com/example/topmovers/Retrofit/CompanyInfo.kt
 
-package com.example.topmovers.Retrofit
+package com.example.topmovers.data.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

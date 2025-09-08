@@ -5,18 +5,18 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.topmovers.Repository.ApiLimitException
-import com.example.topmovers.Repository.Repository
-import com.example.topmovers.Retrofit.TopMover
+import com.example.topmovers.data.repository.ApiLimitException
+import com.example.topmovers.data.repository.Repository
+import com.example.topmovers.data.model.TopMover
 import kotlinx.coroutines.launch
 import java.io.IOException
 import android.util.Log
-import com.example.topmovers.Retrofit.SearchResult
+import com.example.topmovers.data.model.SearchResult
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import com.example.topmovers.BuildConfig // ADDED: Import BuildConfig
+
 class TopMoversViewModel(private val repository: Repository) : ViewModel() {
-
-
 
     // Holds the list of top gainers for the UI.
     var topGainers by mutableStateOf<List<TopMover>>(emptyList())
@@ -71,8 +71,8 @@ class TopMoversViewModel(private val repository: Repository) : ViewModel() {
             isSearching = true
             delay(500L) // Wait for 500ms of user inactivity before calling the API
             try {
-                // Call the new repository function
-                searchResults = repository.searchTicker(query)
+                // Pass the API key from BuildConfig
+                searchResults = repository.searchTicker(query, BuildConfig.ALPHA_VANTAGE_API_KEY)
             } catch (e: Exception) {
                 Log.e("TopMoversViewModel", "Search failed: ${e.message}")
                 searchResults = emptyList() // Clear results on error
@@ -99,7 +99,8 @@ class TopMoversViewModel(private val repository: Repository) : ViewModel() {
             isLoading = true
             errorMessage = null
             try {
-                val response = repository.getTopMoversFromApi("NTJBDU9U1JGKA613")
+                // Pass the API key from BuildConfig
+                val response = repository.getTopMoversFromApi(BuildConfig.ALPHA_VANTAGE_API_KEY)
 
                 // Filter lists to remove items with non-numeric prices before updating the state
                 topGainers = response.topGainers?.filter {
