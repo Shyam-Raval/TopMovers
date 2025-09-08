@@ -53,7 +53,7 @@ fun WatchlistDetailScreen(
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        items(uiState.stocks) { stock ->
+                        items(uiState.stocks.distinctBy { it.ticker }) { stock ->
                             TopMoverItem(mover = stock) {
                                 navController.navigate(
                                     Screens.StockDetails.createRoute(
